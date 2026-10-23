@@ -2,3 +2,6 @@ allowBuilds:
   '@parcel/watcher': true
   unrs-resolver: true
   vue-demi: true
+minimumReleaseAgeExclude:
+  - '@types/lodash@4.17.27'
+  - sass@1.106.1
