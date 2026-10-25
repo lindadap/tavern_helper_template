@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import type { Schema } from '../../schema';
 import { useDataStore, resolvePreviewData, readPreviewUser } from './store';
+import { WUTIANTIAN_ARRIVAL_STORY } from './wutiantian-arrival';
 import HeroSwitcher from './components/HeroSwitcher.vue';
 import LvqingqingPanel from './components/lvqingqing/LvqingqingPanel.vue';
 import WutiantianPanel from './components/wutiantian/WutiantianPanel.vue';
@@ -30,18 +31,22 @@ const current = computed(() => active.value ?? focused.value);
 // 吴恬恬状态栏解锁条件: 她已在剧情中登场
 const wt_unlocked = computed(() => data.value.系统.已登场?.['吴恬恬'] === true);
 
-// 吴恬恬登场剧情种子 (占位文本, 待卡作者以正式剧情替换; 注入时替换玩家名)
+// 吴恬恬登场剧情种子: 以卡作者提供的完整剧本为大纲, 注入时替换玩家名
 function buildArrivalSeed(): string {
   const name = player_name.value;
+  const story = WUTIANTIAN_ARRIVAL_STORY.replaceAll('{{user}}', name);
   return [
     '# 一次性剧情指令 (仅对本次生成生效)',
-    `接下来请描写「吴恬恬初登场」的完整剧情段落。`,
-    `背景: ${name} 的异种娘社会化修复公司今天接收了一批新的战俘异种娘。其中有一只濒死的银白色猫娘——吴恬恬 (16岁, 158cm, 病弱纤细, 患有严重胃病, 曾多次被前主人退回)。`,
-    `要求:`,
-    `- ${name} 亲自接收并救治她: 把她抱到温暖的床上、盖上最软的被子、给她适合病弱肠胃的温热食物 (对应她人设中的记忆锚点)`,
-    `- 描写她初见 ${name} 时小心翼翼的依恋, 符合「病树繁花」的核心意象`,
-    `- 剧情段落结束时, 吴恬恬正式开始在该公司生活`,
-    `- 本段剧情不要推进其他主线, 不要跳过救治过程中的细节`,
+    '请按照下方剧本的脉络，以角色扮演叙事的方式完整演出「吴恬恬初登场」的剧情。',
+    '要求:',
+    '- 不要照抄原文：以剧本为大纲自然展开叙事，保留全部关键节点与细节（深夜来电 → 航空箱接收 → 昏迷救治与每日陪伴 → 公主苏醒）',
+    `- 剧本中出现的 {{user}} 即玩家 ${name}，按其已发生的行动对待`,
+    '- 演到【剧情分支点】处停下：列出三个选项等待玩家选择，不要替玩家做决定',
+    '- 本段剧情不要推进其他主线，不要跳过救治过程中的细节',
+    '',
+    '---',
+    '',
+    story,
   ].join('\n');
 }
 
