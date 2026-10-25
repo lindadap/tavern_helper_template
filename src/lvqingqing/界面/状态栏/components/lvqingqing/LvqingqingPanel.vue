@@ -77,16 +77,20 @@ const whiteness = computed(() => props.heroine.塑形度 / 200);
 <style scoped>
 .lq-root {
   --w: var(--whiteness, 0);
+  /* 背景随塑形度慢慢变白, 但卡片/文字在窄窗口内陡峭切换, 避免中间灰区对比度塌陷 */
+  --cardw: clamp(0, calc((var(--w) - 0.47) / 0.06), 1);
   --porcelain: calc(var(--w) * 100%);
-  --c-text-primary: color-mix(in srgb, #eef2ff, #1e3a5f var(--porcelain));
-  --c-text-muted: color-mix(in srgb, rgba(230, 236, 255, 0.62), rgba(30, 58, 95, 0.55) var(--porcelain));
-  --c-surface: color-mix(in srgb, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.8) var(--porcelain));
-  --c-surface-strong: color-mix(in srgb, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.92) var(--porcelain));
-  --c-border-glass: color-mix(in srgb, rgba(255, 255, 255, 0.14), rgba(118, 148, 210, 0.55) var(--porcelain));
-  --c-primary: color-mix(in srgb, #8b7cf6, #1f3a8f calc(var(--porcelain) * 0.3));
-  --c-accent: color-mix(in srgb, var(--c-accent-raw), #0c1a33 calc(var(--porcelain) * 0.42));
-  --c-stage: color-mix(in srgb, var(--c-stage-raw), #122a63 calc(var(--porcelain) * 0.38));
-  --shadow-tint: var(--porcelain);
+  --cardp: calc(var(--cardw) * 100%);
+  --c-text-primary: color-mix(in srgb, #eef2ff, #1e3a5f var(--cardp));
+  --c-text-muted: color-mix(in srgb, rgba(230, 236, 255, 0.62), rgba(30, 58, 95, 0.55) var(--cardp));
+  --c-surface: color-mix(in srgb, rgba(14, 19, 48, 0.72), rgba(255, 255, 255, 0.88) var(--cardp));
+  --c-surface-strong: color-mix(in srgb, rgba(20, 26, 58, 0.82), rgba(255, 255, 255, 0.94) var(--cardp));
+  --c-border-glass: color-mix(in srgb, rgba(255, 255, 255, 0.16), rgba(118, 148, 210, 0.55) var(--cardp));
+  --c-bar-track: color-mix(in srgb, rgba(0, 0, 0, 0.38), rgba(120, 140, 190, 0.28) var(--cardp));
+  --c-primary: color-mix(in srgb, #8b7cf6, #1f3a8f calc(var(--cardp) * 0.3));
+  --c-accent: color-mix(in srgb, var(--c-accent-raw), #0c1a33 calc(var(--cardp) * 0.42));
+  --c-stage: color-mix(in srgb, var(--c-stage-raw), #122a63 calc(var(--cardp) * 0.38));
+  --shadow-tint: var(--cardp);
 
   position: relative;
   overflow: hidden;

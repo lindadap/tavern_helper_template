@@ -57,7 +57,7 @@ const fill_width = computed(() => `${Math.min(100, (props.value / MAX) * 100)}%`
   position: relative;
   height: 18px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.38);
+  background: var(--c-bar-track, rgba(0, 0, 0, 0.38));
   border: 1px solid var(--c-border-glass);
   overflow: hidden;
   margin: 4px 0 6px;

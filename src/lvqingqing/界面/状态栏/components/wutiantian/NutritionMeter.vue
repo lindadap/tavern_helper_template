@@ -75,7 +75,7 @@ const zone_offsets = ZONES.map((_, i) => ZONES.slice(0, i).reduce((sum, z) => su
   position: relative;
   height: 18px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.32);
+  background: var(--c-bar-track, rgba(0, 0, 0, 0.32));
   border: 1px solid var(--c-border-glass);
   overflow: hidden;
   margin: 4px 0 6px;

@@ -99,6 +99,7 @@ function onPortraitError() {
   font-size: 12px;
   letter-spacing: 3px;
   color: var(--c-text-muted);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes portrait-breathe {

@@ -118,11 +118,15 @@ const PORTRAITS: Record<string, string> = {
 .wt-root {
   --palep: calc(var(--pale, 0) * 100%);
   --pinkp: calc(var(--pink, 0) * 100%);
-  --c-text-primary: color-mix(in srgb, color-mix(in srgb, #f8efe7, #6d4753 var(--palep)), #8f3d5f var(--pinkp));
-  --c-text-muted: color-mix(in srgb, color-mix(in srgb, rgba(248, 239, 231, 0.6), rgba(122, 88, 100, 0.6) var(--palep)), rgba(150, 78, 108, 0.65) var(--pinkp));
-  --c-surface: color-mix(in srgb, color-mix(in srgb, rgba(255, 244, 236, 0.07), rgba(255, 255, 255, 0.72) var(--palep)), rgba(255, 238, 244, 0.8) var(--pinkp));
-  --c-surface-strong: color-mix(in srgb, color-mix(in srgb, rgba(255, 244, 236, 0.12), rgba(255, 255, 255, 0.9) var(--palep)), rgba(255, 236, 243, 0.95) var(--pinkp));
-  --c-border-glass: color-mix(in srgb, color-mix(in srgb, rgba(255, 233, 216, 0.17), rgba(214, 140, 168, 0.5) var(--palep)), rgba(219, 112, 150, 0.55) var(--pinkp));
+  /* 卡片/文字随 pale 陡峭切换 (约养分 45-47 间), 早于背景完成粉白化, 避免中段对比度塌陷 */
+  --cardw: clamp(0, calc((var(--pale, 0) - 0.44) / 0.12), 1);
+  --cardp: calc(var(--cardw) * 100%);
+  --c-text-primary: color-mix(in srgb, color-mix(in srgb, #f8efe7, #6d4753 var(--cardp)), #8f3d5f var(--pinkp));
+  --c-text-muted: color-mix(in srgb, color-mix(in srgb, rgba(248, 239, 231, 0.6), rgba(122, 88, 100, 0.6) var(--cardp)), rgba(150, 78, 108, 0.65) var(--pinkp));
+  --c-surface: color-mix(in srgb, color-mix(in srgb, rgba(30, 20, 14, 0.72), rgba(255, 255, 255, 0.86) var(--cardp)), rgba(255, 238, 244, 0.8) var(--pinkp));
+  --c-surface-strong: color-mix(in srgb, color-mix(in srgb, rgba(36, 24, 16, 0.82), rgba(255, 255, 255, 0.93) var(--cardp)), rgba(255, 236, 243, 0.95) var(--pinkp));
+  --c-border-glass: color-mix(in srgb, color-mix(in srgb, rgba(255, 233, 216, 0.17), rgba(214, 140, 168, 0.5) var(--cardp)), rgba(219, 112, 150, 0.55) var(--pinkp));
+  --c-bar-track: color-mix(in srgb, color-mix(in srgb, rgba(0, 0, 0, 0.35), rgba(190, 120, 150, 0.25) var(--cardp)), rgba(205, 130, 165, 0.25) var(--pinkp));
   --c-accent: var(--c-accent-raw);
   --c-stage: var(--c-stage-raw);
   --shadow-tint: 10%;
