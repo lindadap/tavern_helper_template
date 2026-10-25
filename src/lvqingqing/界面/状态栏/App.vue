@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import type { Schema } from '../../schema';
 import { useDataStore, resolvePreviewData, readPreviewUser } from './store';
 import { WUTIANTIAN_ARRIVAL_STORY } from './wutiantian-arrival';
+import { pickRandomEvent } from './special-events';
 import HeroSwitcher from './components/HeroSwitcher.vue';
 import LvqingqingPanel from './components/lvqingqing/LvqingqingPanel.vue';
 import WutiantianPanel from './components/wutiantian/WutiantianPanel.vue';
@@ -56,8 +57,22 @@ async function onSpecialEvent() {
     return;
   }
   if (wt_unlocked.value) {
-    // TODO: 吴恬恬登场后的后续特殊事件机制, 由卡作者后续提供
-    console.info('[lvqingqing] 吴恬恬已登场, 后续特殊事件机制待接入');
+    // 吴恬恬登场后: 从可复用事件池随机抽取一个, 一次性注入后触发生成
+    const event = pickRandomEvent({ playerName: player_name.value, focused: focused.value, data: data.value });
+    if (!event) {
+      console.info('[lvqingqing] 当前没有可用的事件');
+      return;
+    }
+    console.info('[lvqingqing] 触发特殊事件:', event.title);
+    injectPrompts(
+      [{ id: 'special-event', position: 'in_chat', depth: 2, role: 'system', content: event.build({ playerName: player_name.value, focused: focused.value, data: data.value }) }],
+      { once: true },
+    );
+    try {
+      await generate({ user_input: '（一段特别的小剧情，就此展开）' });
+    } catch (error) {
+      console.error('[lvqingqing] 特殊事件生成失败', error);
+    }
     return;
   }
 
