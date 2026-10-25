@@ -22,13 +22,13 @@ export const Schema = z.object({
       return { ...data, $阶段, $身份认知 };
     }),
 
-  // 吴恬恬: 变量结构待世界书定稿, 先以宽松结构占位 ($阶段/$身份认知 由前端按体重阈值派生)
+  // 吴恬恬: 养分值系统 (0-100, 初始 20), 阶段阈值与 吴恬恬_养分系统 世界书一致
   吴恬恬: z
     .object({
-      体重: z.coerce
+      养分值: z.coerce
         .number()
-        .catch(45)
-        .transform(v => Math.min(Math.max(v, 25), 200)),
+        .catch(20)
+        .transform(v => Math.min(Math.max(v, 0), 100)),
       心声: z.string().catch(''),
       情绪: z.string().catch('平静'),
     })

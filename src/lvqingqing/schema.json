@@ -52,8 +52,8 @@
     "吴恬恬": {
       "type": "object",
       "properties": {
-        "体重": {
-          "default": 45,
+        "养分值": {
+          "default": 20,
           "type": "number"
         },
         "心声": {

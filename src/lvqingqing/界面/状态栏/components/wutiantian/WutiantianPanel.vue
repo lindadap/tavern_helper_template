@@ -7,7 +7,7 @@ import IdentityCard from '../IdentityCard.vue';
 import PortraitStage from '../PortraitStage.vue';
 import VoiceCard from '../VoiceCard.vue';
 import SpecialButton from '../SpecialButton.vue';
-import WeightMeter from './WeightMeter.vue';
+import NutritionMeter from './NutritionMeter.vue';
 
 const props = defineProps<{
   playerName: string;
@@ -17,23 +17,28 @@ const props = defineProps<{
 
 defineEmits<{ 'special-event': [] }>();
 
-// 占位体重阈值 (kg) 与各阶段的「她眼中的自己」, 待世界书定稿后与 schema 同步
+// 养分值阶段 (与 吴恬恬_养分系统 世界书一致): 0-100, 初始 20
+// identity 直接采用世界书各阶段的「核心定位」文案
 const STAGES = [
-  { name: '纤细', max: 46, identity: '随时会折断的枯枝' },
-  { name: '匀称', max: 58, identity: '开始发芽的病树' },
-  { name: '丰满', max: 72, identity: '开了一树繁花' },
-  { name: '超重', max: Infinity, identity: '被繁花压弯的枝头' },
+  { name: '纤细', max: 40, identity: '易碎的瓷器公主' },
+  { name: '匀称', max: 60, identity: '邻家少女的甜美' },
+  { name: '丰满', max: 80, identity: '丰腴的人妻诱惑' },
+  { name: '超重', max: Infinity, identity: '过剩的生命绽放' },
 ] as const;
 
-const wt = computed(() => props.heroine ?? { 体重: 45, 心声: '', 情绪: '平静' });
+const wt = computed(() => props.heroine ?? { 养分值: 20, 心声: '', 情绪: '平静' });
 
-const stage = computed(() => STAGES.find(s => wt.value.体重 <= s.max)!);
+const stage = computed(() => STAGES.find(s => wt.value.养分值 <= s.max)!);
 const stage_name = computed(() => stage.value.name);
 const identity = computed(() => stage.value.identity);
 
-// 病树繁花: 体重越高, 飘落的花瓣越多 (0 ~ 26 瓣)
+// 病树繁花配色: 纤细=褐色; 匀称起转为淡粉白; 养分越高越接近粉色
+const pale = computed(() => Math.min(1, Math.max(0, (wt.value.养分值 - 40) / 12)));
+const pink = computed(() => Math.min(1, Math.max(0, (wt.value.养分值 - 50) / 50)));
+
+// 病树繁花: 养分值越高, 飘落的花瓣越多 (0 ~ 26 瓣)
 const petals = computed(() => {
-  const count = Math.min(26, Math.max(0, Math.round((wt.value.体重 - 35) / 2)));
+  const count = Math.round((Math.min(100, Math.max(0, wt.value.养分值)) / 100) * 26);
   return Array.from({ length: count }, (_, i) => ({
     left: (i * 37) % 100,
     delay: ((i * 0.83) % 9).toFixed(2),
@@ -43,27 +48,28 @@ const petals = computed(() => {
   }));
 });
 
-// 吴恬恬立绘 (待替换为真实图床链接)
+// 吴恬恬立绘: 按阶段选择 (匀称/超重暂借相邻阶段图, 待补图后替换)
 const PORTRAITS: Record<string, string> = {
-  平静: 'https://i.meee.com.tw/n4rMVzn.png',
-  开心: 'https://i.meee.com.tw/n4rMVzn.png',
-  发情: 'https://i.meee.com.tw/n4rMVzn.png',
-  生气: 'https://i.meee.com.tw/n4rMVzn.png',
-  暴怒: 'https://i.meee.com.tw/n4rMVzn.png',
-  伤心: 'https://i.meee.com.tw/n4rMVzn.png',
-  无语: 'https://i.meee.com.tw/n4rMVzn.png',
-  害羞: 'https://i.meee.com.tw/n4rMVzn.png',
+  纤细: 'https://i.meee.com.tw/YPl6Eg9.png',
+  匀称: 'https://i.meee.com.tw/YPl6Eg9.png', // TODO: 待替换为匀称阶段立绘
+  丰满: 'https://i.meee.com.tw/dgnlSf6.png',
+  超重: 'https://i.meee.com.tw/dgnlSf6.png', // TODO: 待替换为超重阶段立绘
 };
 </script>
 
 <template>
-  <section class="wt-root" :data-emotion="wt.情绪" :data-stage="stage_name">
+  <section
+    class="wt-root"
+    :data-emotion="wt.情绪"
+    :data-stage="stage_name"
+    :style="{ '--pale': String(pale), '--pink': String(pink) }"
+  >
     <div class="glow g1" aria-hidden="true"></div>
     <div class="glow g2" aria-hidden="true"></div>
     <div class="glow g3" aria-hidden="true"></div>
     <div class="dots" aria-hidden="true"></div>
 
-    <!-- 落花: 数量随体重增长 -->
+    <!-- 落花: 数量随养分值增长 -->
     <div class="petals" aria-hidden="true">
       <i
         v-for="(p, i) in petals"
@@ -85,10 +91,15 @@ const PORTRAITS: Record<string, string> = {
     <main class="stack">
       <div class="portrait-zone">
         <span class="petal-halo" aria-hidden="true"></span>
-        <PortraitStage :emotion="wt.情绪" :portraits="PORTRAITS" heroine-name="吴恬恬" />
+        <PortraitStage
+          :emotion="wt.情绪"
+          :portraits="PORTRAITS"
+          :portrait-key="stage_name"
+          heroine-name="吴恬恬"
+        />
       </div>
 
-      <WeightMeter :value="wt.体重" :stage="stage_name" />
+      <NutritionMeter :value="wt.养分值" :stage="stage_name" />
 
       <div class="info-row">
         <EmotionCard :emotion="wt.情绪" />
@@ -103,13 +114,15 @@ const PORTRAITS: Record<string, string> = {
 </template>
 
 <style scoped>
-/* 病树繁花: 褐色基底, 暖调微光, 点点纹样, 花瓣随体重飘落 */
+/* 病树繁花: 褐色基底 → (纤细结束后) 淡粉白为主 → 养分越高越粉 */
 .wt-root {
-  --c-text-primary: #f8efe7;
-  --c-text-muted: rgba(248, 239, 231, 0.6);
-  --c-surface: rgba(255, 244, 236, 0.07);
-  --c-surface-strong: rgba(255, 244, 236, 0.12);
-  --c-border-glass: rgba(255, 233, 216, 0.17);
+  --palep: calc(var(--pale, 0) * 100%);
+  --pinkp: calc(var(--pink, 0) * 100%);
+  --c-text-primary: color-mix(in srgb, color-mix(in srgb, #f8efe7, #6d4753 var(--palep)), #8f3d5f var(--pinkp));
+  --c-text-muted: color-mix(in srgb, color-mix(in srgb, rgba(248, 239, 231, 0.6), rgba(122, 88, 100, 0.6) var(--palep)), rgba(150, 78, 108, 0.65) var(--pinkp));
+  --c-surface: color-mix(in srgb, color-mix(in srgb, rgba(255, 244, 236, 0.07), rgba(255, 255, 255, 0.72) var(--palep)), rgba(255, 238, 244, 0.8) var(--pinkp));
+  --c-surface-strong: color-mix(in srgb, color-mix(in srgb, rgba(255, 244, 236, 0.12), rgba(255, 255, 255, 0.9) var(--palep)), rgba(255, 236, 243, 0.95) var(--pinkp));
+  --c-border-glass: color-mix(in srgb, color-mix(in srgb, rgba(255, 233, 216, 0.17), rgba(214, 140, 168, 0.5) var(--palep)), rgba(219, 112, 150, 0.55) var(--pinkp));
   --c-accent: var(--c-accent-raw);
   --c-stage: var(--c-stage-raw);
   --shadow-tint: 10%;
@@ -122,34 +135,37 @@ const PORTRAITS: Record<string, string> = {
   border: 1px solid var(--c-border-glass);
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 219, 188, 0.07), transparent 70%),
-    linear-gradient(165deg, #38261b 0%, #291a12 55%, #1f130c 100%);
+    linear-gradient(165deg,
+      color-mix(in srgb, color-mix(in srgb, #38261b, #fbf2f5 var(--palep)), #f8d8e3 var(--pinkp)) 0%,
+      color-mix(in srgb, color-mix(in srgb, #291a12, #f7e9ee calc(var(--palep) * 0.95)), #f3c6d8 var(--pinkp)) 55%,
+      color-mix(in srgb, color-mix(in srgb, #1f130c, #f0dfe6 var(--palep)), #eeb9ce var(--pinkp)) 100%);
   box-shadow:
-    0 0 30px rgba(216, 141, 88, 0.14),
+    0 0 30px color-mix(in srgb, rgba(216, 141, 88, 0.14), rgba(238, 127, 180, 0.22) var(--pinkp)),
     0 14px 40px rgba(0, 0, 0, 0.5);
   padding: 16px 14px 14px;
 }
 
-/* 暖调微光团 */
+/* 暖调微光团: 随淡粉化而减弱 */
 .glow {
   position: absolute;
   width: 55%;
   height: 60%;
   border-radius: 50%;
   filter: blur(70px);
-  opacity: 0.3;
+  opacity: calc(0.3 - var(--pale, 0) * 0.16);
   pointer-events: none;
   mix-blend-mode: screen;
 }
 .glow.g1 { top: -22%; left: -12%; background: #c47a3c; animation: glow-drift-1 24s ease-in-out infinite alternate; }
 .glow.g2 { bottom: -28%; right: -10%; background: #8f4d2e; animation: glow-drift-2 28s ease-in-out infinite alternate; }
-.glow.g3 { top: 30%; left: 38%; width: 34%; height: 40%; background: #d98ba6; opacity: 0.2; animation: glow-drift-3 32s ease-in-out infinite alternate; }
+.glow.g3 { top: 30%; left: 38%; width: 34%; height: 40%; background: #d98ba6; opacity: calc(0.2 + var(--pink, 0) * 0.12); animation: glow-drift-3 32s ease-in-out infinite alternate; }
 
 /* 点点纹样 */
 .dots {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255, 226, 200, 0.055) 1px, transparent 1.6px);
+  background-image: radial-gradient(color-mix(in srgb, rgba(255, 226, 200, 0.055), rgba(219, 112, 150, 0.07) var(--pinkp)) 1px, transparent 1.6px);
   background-size: 13px 13px;
 }
 

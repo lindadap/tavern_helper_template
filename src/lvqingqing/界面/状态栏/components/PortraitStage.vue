@@ -5,9 +5,13 @@ const props = defineProps<{
   emotion: string;
   portraits: Record<string, string>;
   heroineName: string;
+  /** 立绘选择键: 吕青青按情绪, 吴恬恬按阶段; 缺省时按情绪 */
+  portraitKey?: string;
 }>();
 
-const portrait_src = computed(() => props.portraits[props.emotion] ?? props.portraits['平静']);
+const portrait_src = computed(
+  () => props.portraits[props.portraitKey ?? props.emotion] ?? Object.values(props.portraits)[0],
+);
 const failed = ref(false);
 
 function onPortraitError() {
