@@ -524,6 +524,11 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         return callback();
       }
 
+      // lvqingqing 部署在酒馆外的普通 iframe (jsdelivr CDN), 无法依赖酒馆助手注入的 Vue 全局, 需将 vue 打入包内
+      if (request === 'vue' && entry.script.includes('lvqingqing')) {
+        return callback();
+      }
+
       if (
         request.startsWith('-') ||
         request.startsWith('.') ||

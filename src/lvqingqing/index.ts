@@ -1,9 +1,10 @@
 import { createApp } from 'vue';
-import { StatusBar } from '../../../moyue/src/吕青青/界面';
+// 内置副本, 源组件: C:\Users\lindap\Desktop\Silly\moyue\src\吕青青\界面\StatusBar.vue (改动后需重新拷贝)
+import StatusBar from './StatusBar.vue';
 
 const app = createApp(StatusBar, {
   mvu: (window as any).__MVU_DATA__ || {
-    系统: { 天数: 1, 当前主角: '{{user}}' },
+    系统: { 天数: 1, 当前主角: '你' },
     吕青青: {
       塑形度: 0,
       心声: '',
