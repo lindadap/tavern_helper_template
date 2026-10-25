@@ -10,7 +10,7 @@
           "type": "number"
         },
         "当前主角": {
-          "default": "你",
+          "default": "吕青青",
           "type": "string"
         }
       },
@@ -42,6 +42,27 @@
             "无语",
             "害羞"
           ]
+        }
+      },
+      "required": [
+        "心声",
+        "情绪"
+      ]
+    },
+    "吴恬恬": {
+      "type": "object",
+      "properties": {
+        "体重": {
+          "default": 45,
+          "type": "number"
+        },
+        "心声": {
+          "default": "",
+          "type": "string"
+        },
+        "情绪": {
+          "default": "平静",
+          "type": "string"
         }
       },
       "required": [

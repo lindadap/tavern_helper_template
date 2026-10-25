@@ -1,11 +1,11 @@
 <script setup lang="ts">
-defineProps<{ name: string; day: number; stage: string }>();
+defineProps<{ playerName: string; day: number; stage: string }>();
 </script>
 
 <template>
   <header class="header">
     <div class="who">
-      <span class="name-pill">🐾 {{ name }}</span>
+      <span class="name-pill">🐾 {{ playerName }}</span>
       <span class="day-chip">第 {{ day }} 天</span>
     </div>
     <span class="stage-badge">{{ stage }}</span>

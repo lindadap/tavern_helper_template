@@ -13,20 +13,20 @@ export function useDataStore() {
 }
 
 const DEFAULT_DATA = {
-  系统: { 天数: 1, 当前主角: '你' },
+  系统: { 天数: 1, 当前主角: '吕青青' },
   吕青青: { 塑形度: 0, 心声: '', 情绪: '平静' },
-  心情日志: {},
+  吴恬恬: { 体重: 45, 心声: '', 情绪: '平静' },
 };
 
 /** 酒馆外预览: 从 URL # 后读取变量 JSON, 与默认值合并后经 schema 校验/派生 */
 export function resolvePreviewData(): Schema {
-  const raw = decodeURIComponent(location.hash.slice(1)).trim();
-  const provided = raw ? safeJsonParse(raw.replace(/^```[\w-]*\s*/i, '').replace(/```\s*$/, '')) : undefined;
+  const provided = readFragmentJson();
   const merged = {
     ...DEFAULT_DATA,
     ...provided,
     系统: { ...DEFAULT_DATA.系统, ...provided?.系统 },
     吕青青: { ...DEFAULT_DATA.吕青青, ...provided?.吕青青 },
+    吴恬恬: { ...DEFAULT_DATA.吴恬恬, ...provided?.吴恬恬 },
     心情日志: { ...provided?.心情日志 },
   };
   const result = Schema.safeParse(merged);
@@ -37,11 +37,20 @@ export function resolvePreviewData(): Schema {
   return result.data;
 }
 
-function safeJsonParse(text: string): any {
+/** 酒馆外预览: 读取 fragment 顶层的 user 字段作为玩家名 */
+export function readPreviewUser(): string {
+  const provided = readFragmentJson();
+  return typeof provided?.user === 'string' && provided.user ? provided.user : '你';
+}
+
+function readFragmentJson(): any {
+  const raw = decodeURIComponent(location.hash.slice(1)).trim();
+  if (!raw) return undefined;
   try {
-    const parsed = JSON.parse(text);
+    const parsed = JSON.parse(raw.replace(/^```[\w-]*\s*/i, '').replace(/```\s*$/, ''));
     return typeof parsed?.stat_data === 'object' ? parsed.stat_data : parsed;
-  } catch {
+  } catch (error) {
+    console.warn('[lvqingqing] fragment JSON 解析失败', error);
     return undefined;
   }
 }

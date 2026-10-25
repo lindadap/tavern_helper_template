@@ -1,16 +1,13 @@
 /* ===== 语义色变量 (按功能命名) =====
    --c-accent-raw / --c-stage-raw 由 data 属性按情绪/阶段切换;
-   .status-root 内根据塑形度注入的 --whiteness (0~1) 将其与暗色基底调和成青花瓷质感 */
+   各女主角面板根据自身主题 (青花瓷白化 / 病树繁花) 派生最终用色 */
 :root {
-  --c-bg-deep: #0a0e27;
-  --c-aurora-1: #7c6cf6;
-  --c-aurora-2: #2dd4bf;
-  --c-aurora-3: #f472b6;
   --c-text-primary: #eef2ff;
   --c-text-muted: rgba(230, 236, 255, 0.62);
   --c-primary-raw: #8b7cf6;
   --c-accent-raw: #6ec3e8;
   --c-stage-raw: #5eead4;
+  --shadow-tint: 0%;
 }
 
 [data-emotion='平静'] { --c-accent-raw: #6ec3e8; }
@@ -25,6 +22,10 @@
 [data-stage='顺从期'] { --c-stage-raw: #5eead4; }
 [data-stage='暧昧期'] { --c-stage-raw: #fbbf24; }
 [data-stage='妻子期'] { --c-stage-raw: #fb7185; }
+[data-stage='纤细'] { --c-stage-raw: #b8c4b4; }
+[data-stage='匀称'] { --c-stage-raw: #f2c4cd; }
+[data-stage='丰满'] { --c-stage-raw: #f7a8c4; }
+[data-stage='超重'] { --c-stage-raw: #ee7fb4; }
 
 html, body {
   margin: 0;
@@ -34,102 +35,14 @@ html, body {
   font-family: 'Sarasa UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
 }
 
-/* ===== 根容器: 极光渐变 + 玻璃拟态 + 白瓷化 ===== */
-.status-root {
-  /* 塑形度白化比例由 Vue 内联注入 --whiteness (0~1) */
-  --w: var(--whiteness, 0);
-  --porcelain: calc(var(--w) * 100%);
-  /* 白瓷化后的派生色: 文字转钴蓝、表面转白瓷、描边转青花 */
-  --c-text-primary: color-mix(in srgb, #eef2ff, #1e3a5f var(--porcelain));
-  --c-text-muted: color-mix(in srgb, rgba(230, 236, 255, 0.62), rgba(30, 58, 95, 0.55) var(--porcelain));
-  --c-surface: color-mix(in srgb, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.8) var(--porcelain));
-  --c-surface-strong: color-mix(in srgb, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.92) var(--porcelain));
-  --c-border-glass: color-mix(in srgb, rgba(255, 255, 255, 0.14), rgba(118, 148, 210, 0.55) var(--porcelain));
-  --c-primary: color-mix(in srgb, var(--c-primary-raw), #1f3a8f calc(var(--porcelain) * 0.3));
-  --c-accent: color-mix(in srgb, var(--c-accent-raw), #0c1a33 calc(var(--porcelain) * 0.42));
-  --c-stage: color-mix(in srgb, var(--c-stage-raw), #122a63 calc(var(--porcelain) * 0.38));
-
-  position: relative;
-  overflow: hidden;
-  max-width: 470px;
-  margin-inline: auto;
-  border-radius: 18px;
-  border: 1px solid var(--c-border-glass);
-  background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.5) var(--porcelain)), transparent 70%),
-    linear-gradient(160deg,
-      color-mix(in srgb, #101538, #ffffff var(--porcelain)) 0%,
-      color-mix(in srgb, var(--c-bg-deep), #f2f6fc calc(var(--porcelain) * 0.9)) 55%,
-      color-mix(in srgb, #150f2e, #e8eefb var(--porcelain)) 100%);
-  box-shadow:
-    0 0 34px color-mix(in srgb, rgba(124, 108, 246, 0.26), rgba(120, 150, 210, 0.3) var(--porcelain)),
-    0 14px 40px color-mix(in srgb, rgba(0, 0, 0, 0.45), rgba(90, 120, 180, 0.25) var(--porcelain));
-  padding: 16px 14px 14px;
-}
-
-/* 极光色块层: 白化时褪为淡青花 */
-.aurora {
-  position: absolute;
-  width: 55%;
-  height: 60%;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: calc(0.4 - var(--w) * 0.24);
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-.aurora.a1 { top: -22%; left: -12%; background: color-mix(in srgb, var(--c-aurora-1), #dbe7fb var(--porcelain)); animation: aurora-drift-1 22s ease-in-out infinite alternate; }
-.aurora.a2 { bottom: -28%; right: -10%; background: color-mix(in srgb, var(--c-aurora-2), #d5e6f8 var(--porcelain)); animation: aurora-drift-2 26s ease-in-out infinite alternate; }
-.aurora.a3 { top: 30%; left: 38%; width: 34%; height: 40%; background: color-mix(in srgb, var(--c-aurora-3), #e3ecfa var(--porcelain)); opacity: calc(0.26 - var(--w) * 0.16); animation: aurora-drift-3 30s ease-in-out infinite alternate; }
-
-/* 瓷釉高光: 随白化浮现 */
-.glaze {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: calc(var(--w) * 0.85);
-  background:
-    linear-gradient(118deg, transparent 34%, rgba(255, 255, 255, 0.45) 47%, rgba(255, 255, 255, 0.12) 53%, transparent 67%);
-}
-
-@keyframes aurora-drift-1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(26%, 18%) scale(1.15); } }
-@keyframes aurora-drift-2 { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-22%, -14%) scale(0.95); } }
-@keyframes aurora-drift-3 { from { transform: translate(-10%, 6%) scale(1); } to { transform: translate(14%, -12%) scale(1.2); } }
-
-/* 漂浮光粒 */
-.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.particles i {
-  position: absolute;
-  bottom: -12px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--c-accent) 70%, transparent) 60%, transparent 75%);
-  opacity: 0;
-  animation: particle-rise linear infinite;
-}
-.particles i:nth-child(1) { left: 6%;  width: 5px; height: 5px; animation-duration: 11s; animation-delay: 0s; }
-.particles i:nth-child(2) { left: 17%; width: 3px; height: 3px; animation-duration: 14s; animation-delay: 2.5s; }
-.particles i:nth-child(3) { left: 31%; width: 6px; height: 6px; animation-duration: 12s; animation-delay: 5s; }
-.particles i:nth-child(4) { left: 46%; width: 4px; height: 4px; animation-duration: 16s; animation-delay: 1.2s; }
-.particles i:nth-child(5) { left: 58%; width: 5px; height: 5px; animation-duration: 13s; animation-delay: 4s; }
-.particles i:nth-child(6) { left: 69%; width: 3px; height: 3px; animation-duration: 15s; animation-delay: 6.5s; }
-.particles i:nth-child(7) { left: 81%; width: 6px; height: 6px; animation-duration: 11s; animation-delay: 3s; }
-.particles i:nth-child(8) { left: 92%; width: 4px; height: 4px; animation-duration: 14s; animation-delay: 7.5s; }
-
-@keyframes particle-rise {
-  0%   { transform: translateY(0) translateX(0); opacity: 0; }
-  12%  { opacity: 0.85; }
-  80%  { opacity: 0.5; }
-  100% { transform: translateY(-560px) translateX(18px); opacity: 0; }
-}
-
-/* ===== 玻璃卡片基类 ===== */
+/* ===== 玻璃卡片基类 (双面板共用) ===== */
 .card {
   position: relative;
   border-radius: 14px;
   border: 1px solid var(--c-border-glass);
   background: linear-gradient(150deg, var(--c-surface-strong), var(--c-surface));
   backdrop-filter: blur(10px);
-  box-shadow: 0 6px 18px color-mix(in srgb, rgba(0, 0, 0, 0.28), rgba(70, 100, 170, 0.18) var(--porcelain));
+  box-shadow: 0 6px 18px color-mix(in srgb, rgba(0, 0, 0, 0.28), rgba(70, 100, 170, 0.18) var(--shadow-tint, 0%));
   padding: 11px 13px;
   transition: border-color 0.4s ease, transform 0.25s ease;
 }
@@ -143,7 +56,7 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* 移动端优先的居中单列布局 */
+/* 移动端优先的居中单列布局 (双面板共用) */
 .stack {
   position: relative;
   display: flex;
@@ -162,5 +75,5 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .particles i { animation: none; }
+  .aurora, .particles i, .petals i, .pattern-rings .ring { animation: none; }
 }

@@ -4,7 +4,7 @@ export const Schema = z.object({
       .number()
       .catch(1)
       .transform(v => Math.min(Math.max(v, 1), 999)),
-    当前主角: z.string().catch('你'),
+    当前主角: z.string().catch('吕青青'),
   }),
 
   吕青青: z
@@ -21,6 +21,19 @@ export const Schema = z.object({
       const $身份认知 = data.塑形度 <= 60 ? '宠物兼打手' : data.塑形度 <= 120 ? '想要被选择的少女' : '妻子';
       return { ...data, $阶段, $身份认知 };
     }),
+
+  // 吴恬恬: 变量结构待世界书定稿, 先以宽松结构占位 ($阶段/$身份认知 由前端按体重阈值派生)
+  吴恬恬: z
+    .object({
+      体重: z.coerce
+        .number()
+        .catch(45)
+        .transform(v => Math.min(Math.max(v, 25), 200)),
+      心声: z.string().catch(''),
+      情绪: z.string().catch('平静'),
+    })
+    .optional()
+    .catch(undefined),
 
   心情日志: z
     .record(z.string().describe('天数'), z.string().describe('当日心情'))

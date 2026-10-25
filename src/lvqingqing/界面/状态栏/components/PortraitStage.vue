@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-const props = defineProps<{ emotion: string }>();
+const props = defineProps<{
+  emotion: string;
+  portraits: Record<string, string>;
+  heroineName: string;
+}>();
 
-// 各情绪的立绘链接 (meee.com.tw 图床); 拿到全部立绘后逐个替换即可
-const PORTRAITS: Record<string, string> = {
-  平静: 'https://i.meee.com.tw/n4rMVzn.png',
-  开心: 'https://i.meee.com.tw/n4rMVzn.png',
-  发情: 'https://i.meee.com.tw/n4rMVzn.png',
-  生气: 'https://i.meee.com.tw/n4rMVzn.png',
-  暴怒: 'https://i.meee.com.tw/n4rMVzn.png',
-  伤心: 'https://i.meee.com.tw/n4rMVzn.png',
-  无语: 'https://i.meee.com.tw/n4rMVzn.png',
-  害羞: 'https://i.meee.com.tw/n4rMVzn.png',
-};
-
-const portrait_src = computed(() => PORTRAITS[props.emotion] ?? PORTRAITS['平静']);
+const portrait_src = computed(() => props.portraits[props.emotion] ?? props.portraits['平静']);
 const failed = ref(false);
 
 function onPortraitError() {
@@ -26,19 +18,16 @@ function onPortraitError() {
 
 <template>
   <figure class="portrait-stage">
-    <span class="halo" aria-hidden="true"></span>
-    <span class="halo halo-2" aria-hidden="true"></span>
-
     <div class="portrait-frame" :class="{ failed }">
-      <img v-if="!failed" :src="portrait_src" :alt="`吕青青·${emotion}`" @error="onPortraitError" />
+      <img v-if="!failed" :src="portrait_src" :alt="`${heroineName}·${emotion}`" @error="onPortraitError" />
       <div v-else class="portrait-placeholder">
-        <span class="placeholder-icon">🦊</span>
+        <span class="placeholder-icon">🌸</span>
         <span class="placeholder-text">立绘加载中…</span>
       </div>
       <span class="frame-gloss" aria-hidden="true"></span>
     </div>
 
-    <figcaption class="portrait-caption">{{ emotion }} · 吕青青</figcaption>
+    <figcaption class="portrait-caption">{{ emotion }} · {{ heroineName }}</figcaption>
   </figure>
 </template>
 
@@ -54,36 +43,6 @@ function onPortraitError() {
   gap: 8px;
 }
 
-/* 旋转光晕 (随立绘尺寸缩放) */
-.halo {
-  position: absolute;
-  top: 44%;
-  left: 50%;
-  width: calc(var(--pw) * 1.24);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    color-mix(in srgb, var(--c-accent) 65%, transparent) 70deg,
-    transparent 150deg,
-    color-mix(in srgb, var(--c-stage) 55%, transparent) 250deg,
-    transparent 330deg
-  );
-  filter: blur(15px);
-  opacity: 0.75;
-  animation: halo-rotate 11s linear infinite;
-  pointer-events: none;
-}
-.halo-2 {
-  width: calc(var(--pw) * 1.06);
-  filter: blur(26px);
-  opacity: 0.4;
-  animation-duration: 17s;
-  animation-direction: reverse;
-}
-
 .portrait-frame {
   position: relative;
   width: var(--pw);
@@ -95,7 +54,7 @@ function onPortraitError() {
     radial-gradient(circle at 50% 118%, color-mix(in srgb, var(--c-stage) 30%, transparent), transparent 62%),
     linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
   box-shadow:
-    0 10px 30px color-mix(in srgb, rgba(0, 0, 0, 0.5), rgba(70, 100, 170, 0.28) var(--porcelain)),
+    0 10px 30px color-mix(in srgb, rgba(0, 0, 0, 0.5), rgba(70, 100, 170, 0.28) var(--shadow-tint, 0%)),
     0 0 22px color-mix(in srgb, var(--c-accent) 30%, transparent);
   animation: portrait-breathe 5.5s ease-in-out infinite;
   transition: border-color 0.6s ease;
@@ -138,10 +97,6 @@ function onPortraitError() {
   color: var(--c-text-muted);
 }
 
-@keyframes halo-rotate {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
 @keyframes portrait-breathe {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-4px) scale(1.012); }
