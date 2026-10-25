@@ -2,6 +2,8 @@
 defineProps<{
   modelValue: 'lvqingqing' | 'wutiantian';
   focused: 'lvqingqing' | 'wutiantian';
+  /** 处于锁定 (未登场) 状态的女主角 key */
+  locked?: string[];
 }>();
 
 const emit = defineEmits<{ 'update:modelValue': ['lvqingqing' | 'wutiantian'] }>();
@@ -23,6 +25,7 @@ const HEROINES = [
       @click="emit('update:modelValue', h.key)"
     >
       <span v-if="focused === h.key" class="focus-star" title="当前主角">★</span>
+      <span v-if="locked?.includes(h.key)" class="lock-mark" title="尚未登场">🔒</span>
       {{ h.label }}
     </button>
   </nav>
@@ -63,5 +66,11 @@ const HEROINES = [
   color: #ffd166;
   margin-right: 3px;
   text-shadow: 0 0 6px rgba(255, 209, 102, 0.8);
+}
+
+.lock-mark {
+  font-size: 10px;
+  margin-right: 3px;
+  opacity: 0.85;
 }
 </style>

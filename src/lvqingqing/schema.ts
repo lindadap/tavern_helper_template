@@ -5,6 +5,8 @@ export const Schema = z.object({
       .catch(1)
       .transform(v => Math.min(Math.max(v, 1), 999)),
     当前主角: z.string().catch('吕青青'),
+    // 登场标记: 角色名 → 是否已在剧情中登场 (驱动状态栏解锁)
+    已登场: z.record(z.string(), z.boolean()).catch({}).default({}),
   }),
 
   吕青青: z

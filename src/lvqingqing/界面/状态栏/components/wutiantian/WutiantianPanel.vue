@@ -13,6 +13,8 @@ const props = defineProps<{
   playerName: string;
   day: number;
   heroine?: Schema['吴恬恬'];
+  /** 未登场锁定: 灰显不可交互, 无落花 */
+  locked?: boolean;
 }>();
 
 defineEmits<{ 'special-event': [] }>();
@@ -69,8 +71,8 @@ const PORTRAITS: Record<string, string> = {
     <div class="glow g3" aria-hidden="true"></div>
     <div class="dots" aria-hidden="true"></div>
 
-    <!-- 落花: 数量随养分值增长 -->
-    <div class="petals" aria-hidden="true">
+    <!-- 落花: 数量随养分值增长 (未登场时不开放) -->
+    <div v-if="!locked" class="petals" aria-hidden="true">
       <i
         v-for="(p, i) in petals"
         :key="i"
@@ -88,7 +90,7 @@ const PORTRAITS: Record<string, string> = {
 
     <HeaderBar :player-name="playerName" :day="day" :stage="stage_name" />
 
-    <main class="stack">
+    <main class="stack" :class="{ 'stack-locked': locked }">
       <div class="portrait-zone">
         <span class="petal-halo" aria-hidden="true"></span>
         <PortraitStage
@@ -108,6 +110,13 @@ const PORTRAITS: Record<string, string> = {
 
       <VoiceCard :voice="wt.心声" />
     </main>
+
+    <!-- 未登场提示 -->
+    <section v-if="locked" class="card lock-banner">
+      <span class="lock-icon">🔒</span>
+      <p class="lock-text">她还没有来到这里。</p>
+      <p class="lock-hint">点击「✦ 触发事件」，迎来吴恬恬的登场——届时这株病树将开始开出她的繁花。</p>
+    </section>
 
     <SpecialButton @trigger="$emit('special-event')" />
   </section>
@@ -193,6 +202,35 @@ const PORTRAITS: Record<string, string> = {
   8%   { opacity: 0.8; }
   85%  { opacity: 0.65; }
   100% { transform: translate3d(var(--sw), 820px, 0) rotate(320deg); opacity: 0; }
+}
+
+/* 未登场锁定: 内容灰显且不可交互 */
+.stack-locked {
+  filter: grayscale(0.92) brightness(0.72) opacity(0.78);
+  pointer-events: none;
+}
+
+.lock-banner {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.lock-icon { font-size: 26px; }
+.lock-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--c-text-primary);
+}
+.lock-hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--c-text-muted);
 }
 
 /* 立绘区柔光 */

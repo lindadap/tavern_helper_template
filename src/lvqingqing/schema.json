@@ -12,6 +12,16 @@
         "当前主角": {
           "default": "吕青青",
           "type": "string"
+        },
+        "已登场": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
         }
       },
       "required": [
