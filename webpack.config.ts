@@ -427,6 +427,18 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
             scriptLoading: 'module',
             cache: false,
           }),
+          // lvqingqing 的自包含 bundle 可能运行于无 origin 的 iframe (如 about:blank/srcdoc 无 same-origin),
+          // 其传递依赖 @vue/devtools-kit 顶层访问 localStorage 会抛 SecurityError 使整个 module 崩溃,
+          // 这里在 bundle 顶部注入内存垫片兜底 (真实 localStorage 可用时完全不生效)
+          ...(entry.script.includes('lvqingqing')
+            ? [
+                new webpack.BannerPlugin({
+                  raw: true,
+                  banner:
+                    ";(function(){try{window.localStorage.getItem('__lvq__')}catch(e){var s={};var d={getItem:function(k){return k in s?s[k]:null},setItem:function(k,v){s[k]=String(v)},removeItem:function(k){delete s[k]},clear:function(){for(var k in s)delete s[k]},key:function(i){return Object.keys(s)[i]??null}};try{Object.defineProperty(window,'localStorage',{get:function(){return d},configurable:true})}catch(e2){}}})();",
+                }),
+              ]
+            : []),
           new HtmlInlineScriptWebpackPlugin(),
           new MiniCssExtractPlugin(),
           new HTMLInlineCSSWebpackPlugin({
