@@ -536,8 +536,10 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         return callback();
       }
 
-      // lvqingqing 前端还会在酒馆外的普通浏览器中直接预览, 其依赖全部打包进产物, 不做外部化
-      if (entry.script.includes('lvqingqing')) {
+      // lvqingqing / 吕青青 前端还会在酒馆外的普通浏览器中直接预览。
+      // 依赖全部打包进产物: zod 的 UMD 暴露的是 window.Zod, 不是全局 z,
+      // 外部化成 `var z` 会在酒馆和普通浏览器里都抛 ReferenceError 白屏。
+      if (entry.script.includes('lvqingqing') || entry.script.includes('吕青青')) {
         return callback();
       }
 
