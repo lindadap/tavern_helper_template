@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "系统": {
+      "type": "object",
+      "properties": {
+        "天数": {
+          "default": 1,
+          "type": "number"
+        },
+        "当前主角": {
+          "default": "吕青青",
+          "type": "string"
+        },
+        "已登场": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      },
+      "required": [
+        "当前主角"
+      ]
+    },
+    "吕青青": {
+      "type": "object",
+      "properties": {
+        "塑形度": {
+          "default": 0,
+          "type": "number"
+        },
+        "心声": {
+          "default": "",
+          "type": "string"
+        },
+        "情绪": {
+          "default": "平静",
+          "type": "string",
+          "enum": [
+            "平静",
+            "开心",
+            "发情",
+            "生气",
+            "暴怒",
+            "伤心",
+            "无语",
+            "害羞"
+          ]
+        }
+      },
+      "required": [
+        "心声",
+        "情绪"
+      ]
+    },
+    "吴恬恬": {
+      "type": "object",
+      "properties": {
+        "养分值": {
+          "default": 20,
+          "type": "number"
+        },
+        "心声": {
+          "default": "",
+          "type": "string"
+        },
+        "情绪": {
+          "default": "平静",
+          "type": "string"
+        }
+      },
+      "required": [
+        "心声",
+        "情绪"
+      ]
+    },
+    "心情日志": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "description": "天数"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "description": "当日心情"
+      }
+    }
+  },
+  "required": [
+    "系统",
+    "吕青青"
+  ]
+}
