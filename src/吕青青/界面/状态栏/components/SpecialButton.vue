@@ -1,13 +1,33 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
+const props = defineProps<{ hint?: boolean }>();
 const emit = defineEmits<{ trigger: [] }>();
+const open = ref(false);
+
+function confirm() {
+  open.value = false;
+  emit('trigger');
+}
 </script>
 
 <template>
   <footer class="action-bar">
-    <button class="special-button" type="button" @click="emit('trigger')">
+    <button class="special-button" :class="{ hint }" type="button" @click="open = true">
       <span class="button-face">✦ 触发事件</span>
       <span class="button-shine" aria-hidden="true"></span>
     </button>
+
+    <div v-if="open" class="confirm-mask" @click.self="open = false">
+      <section class="confirm-card">
+        <p class="confirm-title">时间会向前走</p>
+        <p class="confirm-text">确认后，接下来时间会前进 2–5 天，并触发一个事件。</p>
+        <div class="confirm-actions">
+          <button class="ghost" type="button" @click="open = false">先等等</button>
+          <button class="solid" type="button" @click="confirm">确认触发</button>
+        </div>
+      </section>
+    </div>
   </footer>
 </template>
 
@@ -65,8 +85,43 @@ const emit = defineEmits<{ trigger: [] }>();
   animation: shine-sweep 4.2s ease-in-out infinite;
 }
 
+.special-button.hint {
+  animation: hint-glow 1.6s ease-in-out infinite;
+}
+
 @keyframes shine-sweep {
   0%, 55% { left: -50%; }
   100% { left: 130%; }
 }
+
+@keyframes hint-glow {
+  0%, 100% { box-shadow: 0 4px 14px color-mix(in srgb, var(--c-primary) 40%, transparent), 0 0 0 1px rgba(255, 255, 255, 0.18) inset; }
+  50% { box-shadow: 0 0 22px color-mix(in srgb, var(--c-stage) 80%, white), 0 0 0 1px rgba(255, 255, 255, 0.55) inset; }
+}
+
+.confirm-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(12, 10, 18, 0.55);
+}
+
+.confirm-card {
+  width: min(320px, 100%);
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--c-surface-strong, #241c2e);
+  border: 1px solid var(--c-border-glass);
+}
+
+.confirm-title { margin: 0 0 8px; font-weight: 700; letter-spacing: 1px; }
+.confirm-text { margin: 0; font-size: 13px; line-height: 1.6; color: var(--c-text-muted); }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.confirm-actions button { border: none; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.ghost { background: transparent; color: var(--c-text-muted); }
+.solid { background: var(--c-primary); color: white; font-weight: 700; }
 </style>

@@ -13,6 +13,8 @@ const props = defineProps<{
   playerName: string;
   day: number;
   heroine: Schema['吕青青'];
+  eventHint?: boolean;
+  absent?: boolean;
 }>();
 
 defineEmits<{ 'special-event': [] }>();
@@ -64,7 +66,7 @@ const whiteness = computed(() => props.heroine.塑形度 / 200);
 
     <HeaderBar :player-name="playerName" :day="day" :stage="heroine.$阶段" />
 
-    <main class="stack">
+    <main class="stack" :class="{ 'stack-absent': absent }">
       <div class="portrait-zone">
         <span class="halo" aria-hidden="true"></span>
         <span class="halo halo-2" aria-hidden="true"></span>
@@ -85,18 +87,23 @@ const whiteness = computed(() => props.heroine.塑形度 / 200);
       <ShapingMeter :value="heroine.塑形度" :stage="heroine.$阶段" />
 
       <div class="info-row">
-        <EmotionCard :emotion="heroine.情绪" />
-        <IdentityCard :identity="heroine.$身份认知" :stage="heroine.$阶段" />
+        <EmotionCard :emotion="absent ? '—' : heroine.情绪" />
+        <IdentityCard :identity="absent ? '她现在不在这里' : heroine.$身份认知" :stage="heroine.$阶段" />
       </div>
 
-      <VoiceCard :voice="heroine.心声" />
+      <VoiceCard :voice="absent ? '' : heroine.心声" />
     </main>
 
-    <SpecialButton @trigger="$emit('special-event')" />
+    <SpecialButton :hint="eventHint" @trigger="$emit('special-event')" />
   </section>
 </template>
 
 <style scoped>
+.stack-absent {
+  filter: grayscale(0.92) brightness(0.72);
+  opacity: 0.72;
+}
+
 .lq-root {
   --w: var(--whiteness, 0);
   /* 背景随塑形度慢慢变白, 但卡片/文字在窄窗口内陡峭切换, 避免中间灰区对比度塌陷 */

@@ -22,6 +22,10 @@
           "additionalProperties": {
             "type": "boolean"
           }
+        },
+        "日常已触发": {
+          "default": 0,
+          "type": "number"
         }
       },
       "required": [
@@ -67,7 +71,7 @@
           "type": "number"
         },
         "已结算阶段": {
-          "default": "纤细",
+          "default": "初始",
           "type": "string",
           "enum": [
             "初始",
@@ -83,7 +87,17 @@
         },
         "情绪": {
           "default": "平静",
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "害怕",
+            "平静",
+            "开心",
+            "委屈",
+            "被安抚",
+            "害羞",
+            "心动",
+            "发情"
+          ]
         }
       },
       "required": [

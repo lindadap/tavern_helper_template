@@ -7,6 +7,7 @@ export const Schema = z.object({
     当前主角: z.string().catch('吕青青'),
     // 登场标记: 角色名 → 是否已在剧情中登场 (驱动状态栏解锁)
     已登场: z.record(z.string(), z.boolean()).catch({}).default({}),
+    日常已触发: z.coerce.number().catch(0).transform(v => Math.max(0, v)),
   }),
 
   吕青青: z
@@ -31,9 +32,9 @@ export const Schema = z.object({
         .number()
         .catch(20)
         .transform(v => Math.min(Math.max(v, 0), 200)),
-      已结算阶段: z.enum(['初始', '纤细', '匀称', '丰满', '超重']).catch('纤细'),
+      已结算阶段: z.enum(['初始', '纤细', '匀称', '丰满', '超重']).catch('初始'),
       心声: z.string().catch(''),
-      情绪: z.string().catch('平静'),
+      情绪: z.enum(['害怕', '平静', '开心', '委屈', '被安抚', '害羞', '心动', '发情']).catch('平静'),
     })
     .transform(data => {
       const $待结算阶段 =

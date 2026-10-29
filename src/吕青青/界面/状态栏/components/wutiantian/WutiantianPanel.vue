@@ -15,6 +15,8 @@ const props = defineProps<{
   heroine?: Schema['吴恬恬'];
   /** 未登场锁定: 灰显不可交互, 无落花 */
   locked?: boolean;
+  absent?: boolean;
+  eventHint?: boolean;
 }>();
 
 defineEmits<{ 'special-event': [] }>();
@@ -28,7 +30,7 @@ const STAGES = [
   { name: '超重', identity: '过剩的生命绽放' },
 ] as const;
 
-const wt = computed(() => props.heroine ?? { 养分值: 20, 已结算阶段: '纤细' as const, 心声: '', 情绪: '平静' });
+const wt = computed(() => props.heroine ?? { 养分值: 20, 已结算阶段: '初始' as const, 心声: '', 情绪: '平静' });
 
 const stage_name = computed(() => wt.value.已结算阶段);
 const identity = computed(() => STAGES.find(s => s.name === stage_name.value)?.identity ?? '易碎的瓷器公主');
@@ -48,8 +50,26 @@ const petals = computed(() => {
   }));
 });
 
-// 吴恬恬的立绘还没到。先留空, 绝不借用吕青青的图。
-const PORTRAITS: Record<string, readonly string[]> = {};
+const portrait_key = computed(() => {
+  if (props.absent) return '';
+  return `${stage_name.value}/${wt.value.情绪}`;
+});
+
+const PORTRAITS: Record<string, readonly string[]> = {
+  '初始/害怕': ['https://i.meee.com.tw/hA1YzHh.png', 'https://i.meee.com.tw/5UFaDKe.png'],
+  '初始/平静': ['https://i.meee.com.tw/iSJ20Ck.png'],
+  '初始/开心': ['https://i.meee.com.tw/4r1AJWH.png'],
+  '初始/委屈': ['https://i.meee.com.tw/SiQelLb.png', 'https://i.meee.com.tw/zlGdDe6.png', 'https://i.meee.com.tw/35uk7Ov.png'],
+  '初始/被安抚': ['https://i.meee.com.tw/N7fG09O.png'],
+  '初始/害羞': ['https://i.meee.com.tw/yGH0CDW.png'],
+  '初始/心动': ['https://i.meee.com.tw/yLsZJQq.png', 'https://i.meee.com.tw/1oUwxu0.png', 'https://i.meee.com.tw/12QYE8E.png'],
+  '纤细/平静': ['https://i.meee.com.tw/pHr5TD4.png', 'https://i.meee.com.tw/k2QP5iO.png', 'https://i.meee.com.tw/hNHuxke.png'],
+  '纤细/开心': ['https://i.meee.com.tw/RqHUC84.png', 'https://i.meee.com.tw/ZKe4oua.png', 'https://i.meee.com.tw/B6HCYQn.png', 'https://i.meee.com.tw/tzTEAJN.png'],
+  '纤细/委屈': ['https://i.meee.com.tw/YFalj2R.png', 'https://i.meee.com.tw/ggPM33f.png'],
+  '纤细/害羞': ['https://i.meee.com.tw/PK5hiGI.png', 'https://i.meee.com.tw/Jg1XngM.png', 'https://i.meee.com.tw/uxaXk2H.png'],
+  '纤细/发情': ['https://i.meee.com.tw/CnPU49i.png', 'https://i.meee.com.tw/F4TLW3Q.png'],
+  '匀称/平静': ['https://i.meee.com.tw/ENXQz7v.png'],
+};
 </script>
 
 <template>
@@ -83,14 +103,14 @@ const PORTRAITS: Record<string, readonly string[]> = {};
 
     <HeaderBar :player-name="playerName" :day="day" :stage="stage_name" />
 
-    <main class="stack" :class="{ 'stack-locked': locked }">
+    <main class="stack" :class="{ 'stack-locked': locked, 'stack-absent': absent && !locked }">
       <div class="portrait-zone">
         <span class="petal-halo" aria-hidden="true"></span>
         <PortraitStage
           :emotion="wt.情绪"
           :portraits="PORTRAITS"
-          :portrait-key="stage_name"
-          :seed="`吴恬恬-${day}-${stage_name}`"
+          :portrait-key="portrait_key"
+          :seed="`吴恬恬-${day}-${portrait_key}`"
           heroine-name="吴恬恬"
         />
       </div>
@@ -98,21 +118,21 @@ const PORTRAITS: Record<string, readonly string[]> = {};
       <NutritionMeter :value="wt.养分值" :stage="stage_name" />
 
       <div class="info-row">
-        <EmotionCard :emotion="wt.情绪" />
+        <EmotionCard :emotion="absent ? '—' : wt.情绪" />
         <IdentityCard :identity="identity" :stage="stage_name" />
       </div>
 
-      <VoiceCard :voice="wt.心声" />
+      <VoiceCard :voice="absent ? '' : wt.心声" />
     </main>
 
     <!-- 未登场提示 -->
     <section v-if="locked" class="card lock-banner">
       <span class="lock-icon">🔒</span>
       <p class="lock-text">她还没有来到这里。</p>
-      <p class="lock-hint">点击「✦ 触发事件」，迎来吴恬恬的登场——届时这株病树将开始开出她的繁花。</p>
+      <p class="lock-hint">先完成一次日常事件后，触发事件按钮会发光。再次确认，她才会来到这里。</p>
     </section>
 
-    <SpecialButton @trigger="$emit('special-event')" />
+    <SpecialButton :hint="eventHint" @trigger="$emit('special-event')" />
   </section>
 </template>
 
@@ -196,6 +216,11 @@ const PORTRAITS: Record<string, readonly string[]> = {};
   8%   { opacity: 0.8; }
   85%  { opacity: 0.65; }
   100% { transform: translate3d(var(--sw), 820px, 0) rotate(320deg); opacity: 0; }
+}
+
+.stack-absent {
+  filter: grayscale(0.92) brightness(0.72);
+  opacity: 0.72;
 }
 
 /* 未登场锁定: 内容灰显且不可交互 */

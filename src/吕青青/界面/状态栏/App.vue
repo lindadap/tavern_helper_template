@@ -29,8 +29,11 @@ const focused = computed<'lvqingqing' | 'wutiantian'>(() =>
 const active = ref<'lvqingqing' | 'wutiantian' | null>(null);
 const current = computed(() => active.value ?? focused.value);
 
-// 吴恬恬状态栏解锁条件: 她已在剧情中登场
 const wt_unlocked = computed(() => data.value.系统.已登场?.['吴恬恬'] === true);
+const daily_done = computed(() => (data.value.系统.日常已触发 ?? 0) > 0);
+const event_hint = computed(() => daily_done.value && !wt_unlocked.value);
+const lq_absent = computed(() => data.value.系统.当前主角 !== '吕青青');
+const wt_absent = computed(() => data.value.系统.当前主角 !== '吴恬恬');
 
 // 吴恬恬登场剧情种子: 以卡作者提供的完整剧本为大纲, 注入时替换玩家名
 function buildArrivalSeed(): string {
@@ -56,13 +59,20 @@ async function onSpecialEvent() {
     console.info('[lvqingqing] special event clicked (preview, 未连接酒馆)');
     return;
   }
-  if (wt_unlocked.value) {
-    // 吴恬恬登场后: 从可复用事件池随机抽取一个, 一次性注入后触发生成
-    const event = pickRandomEvent({ playerName: player_name.value, focused: focused.value, data: data.value });
-    if (!event) {
-      console.info('[lvqingqing] 当前没有可用的事件');
-      return;
-    }
+  if (!daily_done.value) {
+    console.info('[lvqingqing] 日常事件池还没有移植，已停止，不生成剧情');
+    return;
+  }
+  if (!wt_unlocked.value) {
+    console.info('[lvqingqing] 吴恬恬进场正文还没有移植，已停止，不解锁');
+    return;
+  }
+
+  const event = pickRandomEvent({ playerName: player_name.value, focused: focused.value, data: data.value });
+  if (!event) {
+    console.info('[lvqingqing] 当前没有可用的事件');
+    return;
+  }
     console.info('[lvqingqing] 触发特殊事件:', event.title);
     injectPrompts(
       [{ id: 'special-event', position: 'in_chat', depth: 2, role: 'system', content: event.build({ playerName: player_name.value, focused: focused.value, data: data.value }) }],
@@ -75,40 +85,6 @@ async function onSpecialEvent() {
     }
     return;
   }
-
-  console.info('[lvqingqing] 触发吴恬恬登场剧情');
-  // 一次性注入剧情种子: 仅对下一次生成生效, 不影响世界书提示词
-  injectPrompts(
-    [
-      {
-        id: 'wutiantian-arrival-seed',
-        position: 'in_chat',
-        depth: 2,
-        role: 'system',
-        content: buildArrivalSeed(),
-      },
-    ],
-    { once: true },
-  );
-
-  try {
-    await generate({ user_input: '（新的一天，公司来了一批新的异种娘——命运的齿轮开始转动）' });
-
-    // 登场剧情生成完毕: 在最新楼层写入登场标记并初始化吴恬恬变量,
-    // 状态栏依赖的 store 会轮询同步, 解锁随之生效 (MVU 继承会把标记带向之后的所有楼层)
-    updateVariablesWith(
-      variables => {
-        _.set(variables, 'stat_data.系统.已登场.吴恬恬', true);
-        if (_.get(variables, 'stat_data.吴恬恬') === undefined) {
-          _.set(variables, 'stat_data.吴恬恬', { 养分值: 20, 心声: '', 情绪: '平静' });
-        }
-      },
-      { type: 'message', message_id: 'latest' },
-    );
-  } catch (error) {
-    console.error('[lvqingqing] 登场剧情生成失败', error);
-  }
-}
 </script>
 
 <template>
@@ -125,6 +101,8 @@ async function onSpecialEvent() {
       :player-name="player_name"
       :day="data.系统.天数"
       :heroine="data.吕青青"
+      :absent="lq_absent"
+      :event-hint="event_hint"
       @special-event="onSpecialEvent"
     />
     <WutiantianPanel
@@ -133,6 +111,8 @@ async function onSpecialEvent() {
       :day="data.系统.天数"
       :heroine="data.吴恬恬"
       :locked="!wt_unlocked"
+      :absent="wt_absent"
+      :event-hint="event_hint"
       @special-event="onSpecialEvent"
     />
   </div>
