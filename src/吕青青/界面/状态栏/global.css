@@ -10,18 +10,19 @@
   --shadow-tint: 0%;
 }
 
-[data-emotion='平静'] { --c-accent-raw: #6ec3e8; }
-[data-emotion='开心'] { --c-accent-raw: #ffd166; }
-[data-emotion='发情'] { --c-accent-raw: #ff7eb6; }
-[data-emotion='生气'] { --c-accent-raw: #ff9838; }
-[data-emotion='暴怒'] { --c-accent-raw: #ef4444; }
-[data-emotion='伤心'] { --c-accent-raw: #93c5fd; }
-[data-emotion='无语'] { --c-accent-raw: #9ca3af; }
 [data-emotion='害羞'] { --c-accent-raw: #fda4af; }
+[data-emotion='情动'] { --c-accent-raw: #ff7eb6; }
+[data-emotion='生气'] { --c-accent-raw: #ff9838; }
+[data-emotion='平静'] { --c-accent-raw: #6ec3e8; }
+[data-emotion='高兴'] { --c-accent-raw: #ffd166; }
+[data-emotion='委屈'] { --c-accent-raw: #93c5fd; }
+[data-emotion='被安抚'] { --c-accent-raw: #86efac; }
+[data-emotion='吃醋'] { --c-accent-raw: #c084fc; }
 
 [data-stage='顺从期'] { --c-stage-raw: #5eead4; }
 [data-stage='暧昧期'] { --c-stage-raw: #fbbf24; }
 [data-stage='妻子期'] { --c-stage-raw: #fb7185; }
+[data-stage='初始'] { --c-stage-raw: #c4b5a0; }
 [data-stage='纤细'] { --c-stage-raw: #b8c4b4; }
 [data-stage='匀称'] { --c-stage-raw: #f2c4cd; }
 [data-stage='丰满'] { --c-stage-raw: #f7a8c4; }

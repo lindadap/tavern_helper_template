@@ -3,16 +3,17 @@ import { computed } from 'vue';
 
 const props = defineProps<{ value: number; stage: string }>();
 
-// 养分值分区 (0-100): 各区显示宽度解耦于数值跨度 —— 匀称最宽, 超重最短靠右
+// 养分 0-200。显示宽度按阶段均分, 数值本身仍按 0/40/90/140/190 分段。
 const ZONES = [
-  { name: '纤细', start: 0, end: 40, width: 22 },
-  { name: '匀称', start: 40, end: 60, width: 34 },
-  { name: '丰满', start: 60, end: 80, width: 28 },
-  { name: '超重', start: 80, end: 100, width: 16 },
+  { name: '初始', start: 0, end: 40, width: 20 },
+  { name: '纤细', start: 40, end: 90, width: 20 },
+  { name: '匀称', start: 90, end: 140, width: 20 },
+  { name: '丰满', start: 140, end: 190, width: 20 },
+  { name: '超重', start: 190, end: 200, width: 20 },
 ];
 
 const fill_pct = computed(() => {
-  const n = Math.min(100, Math.max(0, props.value));
+  const n = Math.min(200, Math.max(0, props.value));
   const index = Math.max(0, ZONES.findIndex(z => n <= z.end));
   const zone = ZONES[index];
   const before = ZONES.slice(0, index).reduce((sum, z) => sum + z.width, 0);
@@ -27,7 +28,7 @@ const zone_offsets = ZONES.map((_, i) => ZONES.slice(0, i).reduce((sum, z) => su
   <section class="card nutrition-card">
     <div class="meter-head">
       <span class="card-label">养分值</span>
-      <span class="meter-value">{{ Math.round(value) }} <i>/ 100</i></span>
+      <span class="meter-value">{{ Math.round(value) }} <i>/ 200</i></span>
     </div>
 
     <div class="bar-container">

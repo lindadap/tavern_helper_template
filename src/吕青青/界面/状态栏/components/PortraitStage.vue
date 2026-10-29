@@ -3,15 +3,25 @@ import { computed, ref } from 'vue';
 
 const props = defineProps<{
   emotion: string;
-  portraits: Record<string, string>;
+  /** 同一情绪/阶段可有多张, 由组件按楼层种子随机一张; 键必须精确, 不允许借用别人的图 */
+  portraits: Record<string, readonly string[]>;
   heroineName: string;
-  /** 立绘选择键: 吕青青按情绪, 吴恬恬按阶段; 缺省时按情绪 */
-  portraitKey?: string;
+  /** 立绘选择键: 吕青青按情绪, 吴恬恬按阶段 */
+  portraitKey: string;
+  /** 同一天同一情绪保持同一张, 换情绪或换天才重抽 */
+  seed: string;
 }>();
 
-const portrait_src = computed(
-  () => props.portraits[props.portraitKey ?? props.emotion] ?? Object.values(props.portraits)[0],
-);
+function pick(urls: readonly string[], seed: string) {
+  let hash = 0;
+  for (const char of seed) hash = (hash * 33 + char.charCodeAt(0)) >>> 0;
+  return urls[hash % urls.length];
+}
+
+const portrait_src = computed(() => {
+  const urls = props.portraits[props.portraitKey];
+  return urls?.length ? pick(urls, props.seed) : '';
+});
 const failed = ref(false);
 
 function onPortraitError() {
@@ -23,7 +33,7 @@ function onPortraitError() {
 <template>
   <figure class="portrait-stage">
     <div class="portrait-frame" :class="{ failed }">
-      <img v-if="!failed" :src="portrait_src" :alt="`${heroineName}·${emotion}`" @error="onPortraitError" />
+      <img v-if="portrait_src && !failed" :src="portrait_src" :alt="`${heroineName}·${emotion}`" @error="onPortraitError" />
       <div v-else class="portrait-placeholder">
         <span class="placeholder-icon">🌸</span>
         <span class="placeholder-text">立绘加载中…</span>

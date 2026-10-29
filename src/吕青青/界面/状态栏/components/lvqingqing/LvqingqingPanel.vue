@@ -17,16 +17,32 @@ const props = defineProps<{
 
 defineEmits<{ 'special-event': [] }>();
 
-// 各情绪的立绘链接 (meee.com.tw 图床); 拿到全部立绘后逐个替换即可
-const PORTRAITS: Record<string, string> = {
-  平静: 'https://i.meee.com.tw/n4rMVzn.png',
-  开心: 'https://i.meee.com.tw/n4rMVzn.png',
-  发情: 'https://i.meee.com.tw/n4rMVzn.png',
-  生气: 'https://i.meee.com.tw/n4rMVzn.png',
-  暴怒: 'https://i.meee.com.tw/n4rMVzn.png',
-  伤心: 'https://i.meee.com.tw/n4rMVzn.png',
-  无语: 'https://i.meee.com.tw/n4rMVzn.png',
-  害羞: 'https://i.meee.com.tw/n4rMVzn.png',
+// 吕青青只使用自己的立绘。没有图的情绪不保留, 也不借用相近情绪的脸。
+const PORTRAITS: Record<string, readonly string[]> = {
+  害羞: [
+    'https://i.meee.com.tw/Q5wBeAt.png',
+    'https://i.meee.com.tw/o8hxTSh.png',
+    'https://i.meee.com.tw/zYz7eC3.png',
+    'https://i.meee.com.tw/ibcA8X2.png',
+    'https://i.meee.com.tw/4EkOzNd.png',
+  ],
+  情动: [
+    'https://i.meee.com.tw/n4rMVzn.png',
+    'https://i.meee.com.tw/Nqvorvk.png',
+    'https://i.meee.com.tw/cVA8Fbt.png',
+    'https://i.meee.com.tw/zR1dfiN.png',
+    'https://i.meee.com.tw/9UXv5Fy.png',
+  ],
+  生气: [
+    'https://i.meee.com.tw/7DrPpC9.png',
+    'https://i.meee.com.tw/Bu8Nmix.png',
+    'https://i.meee.com.tw/ZXyjI4M.png',
+  ],
+  平静: ['https://i.meee.com.tw/ZxX87z4.png'],
+  高兴: ['https://i.meee.com.tw/UbSYZMt.png', 'https://i.meee.com.tw/QxeGAJD.png'],
+  委屈: ['https://i.meee.com.tw/E2lV3Nk.png', 'https://i.meee.com.tw/utqAaD1.png'],
+  被安抚: ['https://i.meee.com.tw/GbZDbJf.png'],
+  吃醋: ['https://i.meee.com.tw/tWjPdFu.png', 'https://i.meee.com.tw/Xw65mAa.png'],
 };
 
 // 塑形度 → 白瓷化比例 (0~1): 越高整体越白, 与现有配色调和出青花瓷质感
@@ -57,7 +73,13 @@ const whiteness = computed(() => props.heroine.塑形度 / 200);
           <span class="ring ring-outer"></span>
           <span class="ring ring-inner"></span>
         </div>
-        <PortraitStage :emotion="heroine.情绪" :portraits="PORTRAITS" heroine-name="吕青青" />
+        <PortraitStage
+          :emotion="heroine.情绪"
+          :portraits="PORTRAITS"
+          :portrait-key="heroine.情绪"
+          :seed="`吕青青-${day}-${heroine.情绪}`"
+          heroine-name="吕青青"
+        />
       </div>
 
       <ShapingMeter :value="heroine.塑形度" :stage="heroine.$阶段" />

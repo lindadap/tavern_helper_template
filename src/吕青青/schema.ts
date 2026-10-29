@@ -16,7 +16,7 @@ export const Schema = z.object({
         .catch(0)
         .transform(v => Math.min(Math.max(v, 0), 200)),
       心声: z.string().catch(''),
-      情绪: z.enum(['平静', '开心', '发情', '生气', '暴怒', '伤心', '无语', '害羞']).catch('平静'),
+      情绪: z.enum(['害羞', '情动', '生气', '平静', '高兴', '委屈', '被安抚', '吃醋']).catch('平静'),
     })
     .transform(data => {
       const $阶段 = data.塑形度 <= 60 ? '顺从期' : data.塑形度 <= 120 ? '暧昧期' : '妻子期';
@@ -24,15 +24,21 @@ export const Schema = z.object({
       return { ...data, $阶段, $身份认知 };
     }),
 
-  // 吴恬恬: 养分值系统 (0-100, 初始 20), 阶段阈值与 吴恬恬_养分系统 世界书一致
+  // 吴恬恬: 养分 0-200。阶段看「已结算阶段」, 当天的增减不立刻改体型。
   吴恬恬: z
     .object({
       养分值: z.coerce
         .number()
         .catch(20)
-        .transform(v => Math.min(Math.max(v, 0), 100)),
+        .transform(v => Math.min(Math.max(v, 0), 200)),
+      已结算阶段: z.enum(['初始', '纤细', '匀称', '丰满', '超重']).catch('纤细'),
       心声: z.string().catch(''),
       情绪: z.string().catch('平静'),
+    })
+    .transform(data => {
+      const $待结算阶段 =
+        data.养分值 < 40 ? '初始' : data.养分值 < 90 ? '纤细' : data.养分值 < 140 ? '匀称' : data.养分值 < 190 ? '丰满' : '超重';
+      return { ...data, $待结算阶段 };
     })
     .optional()
     .catch(undefined),

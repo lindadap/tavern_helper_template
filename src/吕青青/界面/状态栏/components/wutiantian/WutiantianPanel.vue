@@ -19,28 +19,26 @@ const props = defineProps<{
 
 defineEmits<{ 'special-event': [] }>();
 
-// 养分值阶段 (与 吴恬恬_养分系统 世界书一致): 0-100, 初始 20
-// identity 直接采用世界书各阶段的「核心定位」文案
+// 体型只看已结算阶段。当天养分变化不改阶段, 过一天才结算。
 const STAGES = [
-  { name: '纤细', max: 40, identity: '易碎的瓷器公主' },
-  { name: '匀称', max: 60, identity: '邻家少女的甜美' },
-  { name: '丰满', max: 80, identity: '丰腴的人妻诱惑' },
-  { name: '超重', max: Infinity, identity: '过剩的生命绽放' },
+  { name: '初始', identity: '还没开始被好好养活' },
+  { name: '纤细', identity: '易碎的瓷器公主' },
+  { name: '匀称', identity: '邻家少女的甜美' },
+  { name: '丰满', identity: '丰腴的人妻诱惑' },
+  { name: '超重', identity: '过剩的生命绽放' },
 ] as const;
 
-const wt = computed(() => props.heroine ?? { 养分值: 20, 心声: '', 情绪: '平静' });
+const wt = computed(() => props.heroine ?? { 养分值: 20, 已结算阶段: '纤细' as const, 心声: '', 情绪: '平静' });
 
-const stage = computed(() => STAGES.find(s => wt.value.养分值 <= s.max)!);
-const stage_name = computed(() => stage.value.name);
-const identity = computed(() => stage.value.identity);
+const stage_name = computed(() => wt.value.已结算阶段);
+const identity = computed(() => STAGES.find(s => s.name === stage_name.value)?.identity ?? '易碎的瓷器公主');
 
-// 病树繁花配色: 纤细=褐色; 匀称起转为淡粉白; 养分越高越接近粉色
-const pale = computed(() => Math.min(1, Math.max(0, (wt.value.养分值 - 40) / 12)));
-const pink = computed(() => Math.min(1, Math.max(0, (wt.value.养分值 - 50) / 50)));
+// 病树繁花配色仍跟当前养分走, 但体型标签不跟当天数字跳。
+const pale = computed(() => Math.min(1, Math.max(0, (wt.value.养分值 - 40) / 50)));
+const pink = computed(() => Math.min(1, Math.max(0, (wt.value.养分值 - 90) / 100)));
 
-// 病树繁花: 养分值越高, 飘落的花瓣越多 (0 ~ 26 瓣)
 const petals = computed(() => {
-  const count = Math.round((Math.min(100, Math.max(0, wt.value.养分值)) / 100) * 26);
+  const count = Math.round((Math.min(200, Math.max(0, wt.value.养分值)) / 200) * 26);
   return Array.from({ length: count }, (_, i) => ({
     left: (i * 37) % 100,
     delay: ((i * 0.83) % 9).toFixed(2),
@@ -50,13 +48,8 @@ const petals = computed(() => {
   }));
 });
 
-// 吴恬恬立绘: 按阶段选择 (匀称/超重暂借相邻阶段图, 待补图后替换)
-const PORTRAITS: Record<string, string> = {
-  纤细: 'https://i.meee.com.tw/YPl6Eg9.png',
-  匀称: 'https://i.meee.com.tw/YPl6Eg9.png', // TODO: 待替换为匀称阶段立绘
-  丰满: 'https://i.meee.com.tw/dgnlSf6.png',
-  超重: 'https://i.meee.com.tw/dgnlSf6.png', // TODO: 待替换为超重阶段立绘
-};
+// 吴恬恬的立绘还没到。先留空, 绝不借用吕青青的图。
+const PORTRAITS: Record<string, readonly string[]> = {};
 </script>
 
 <template>
@@ -97,6 +90,7 @@ const PORTRAITS: Record<string, string> = {
           :emotion="wt.情绪"
           :portraits="PORTRAITS"
           :portrait-key="stage_name"
+          :seed="`吴恬恬-${day}-${stage_name}`"
           heroine-name="吴恬恬"
         />
       </div>

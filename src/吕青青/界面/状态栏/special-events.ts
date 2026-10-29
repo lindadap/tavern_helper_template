@@ -145,7 +145,7 @@ export const EVENT_POOL: SpecialEvent[] = [
     id: 'snack-cache',
     title: '藏零食的小偷',
     requires: 'wutiantian',
-    condition: ctx => ctx.data.吴恬恬?.养分值 > 60,
+    condition: ctx => (ctx.data.吴恬恬?.养分值 ?? 0) >= 140,
     build: ctx =>
       directive([
         '请演出「藏零食的小偷被抓获」。',
