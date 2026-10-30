@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import type { Schema } from '../../schema';
 import { useDataStore, resolvePreviewData, readPreviewUser } from './store';
 import { WUTIANTIAN_ARRIVAL_STORY } from './wutiantian-arrival';
-import { pickRandomEvent } from './special-events';
+import { EVENT_POOL, pickRandomEvent } from './special-events';
 import HeroSwitcher from './components/HeroSwitcher.vue';
 import LvqingqingPanel from './components/lvqingqing/LvqingqingPanel.vue';
 import WutiantianPanel from './components/wutiantian/WutiantianPanel.vue';
@@ -35,23 +35,28 @@ const event_hint = computed(() => daily_done.value && !wt_unlocked.value);
 const lq_absent = computed(() => data.value.系统.当前主角 !== '吕青青');
 const wt_absent = computed(() => data.value.系统.当前主角 !== '吴恬恬');
 
-// 吴恬恬登场剧情种子: 以卡作者提供的完整剧本为大纲, 注入时替换玩家名
 function buildArrivalSeed(): string {
   const name = player_name.value;
   const story = WUTIANTIAN_ARRIVAL_STORY.replaceAll('{{user}}', name);
   return [
     '# 一次性剧情指令 (仅对本次生成生效)',
-    '请按照下方剧本的脉络，以角色扮演叙事的方式完整演出「吴恬恬初登场」的剧情。',
-    '要求:',
-    '- 不要照抄原文：以剧本为大纲自然展开叙事，保留全部关键节点与细节（深夜来电 → 航空箱接收 → 昏迷救治与每日陪伴 → 公主苏醒）',
-    `- 剧本中出现的 {{user}} 即玩家 ${name}，按其已发生的行动对待`,
-    '- 演到【剧情分支点】处停下：列出三个选项等待玩家选择，不要替玩家做决定',
-    '- 本段剧情不要推进其他主线，不要跳过救治过程中的细节',
-    '',
-    '---',
+    '请以以下剧本为大纲，演出「吴恬恬初登场」。可以展开有趣的细节，但不得跳过关键节点，也不得替玩家做决定。',
+    '关键节点: 深夜来电 → 航空箱接收 → 昏迷救治与每日陪伴 → 公主苏醒 → 停在剧情分支点，列出选项。',
     '',
     story,
   ].join('\n');
+}
+
+function presentNames(): string {
+  if (wt_unlocked.value && data.value.系统.当前主角 === '吴恬恬') return '吕青青、吴恬恬';
+  return data.value.系统.当前主角 || '吕青青';
+}
+
+async function concealTrigger(eventTitle: string) {
+  const latest = getChatMessages('latest')[0];
+  if (!latest) return;
+  const veiled = `<div class="time-skip">时间推进中。。。</div><!-- 触发事件【${eventTitle}】 -->`;
+  await setChatMessages([{ message_id: latest.message_id, message: veiled }], { refresh: 'affected' });
 }
 
 async function onSpecialEvent() {
@@ -59,32 +64,61 @@ async function onSpecialEvent() {
     console.info('[lvqingqing] special event clicked (preview, 未连接酒馆)');
     return;
   }
-  if (!daily_done.value) {
-    console.info('[lvqingqing] 日常事件池还没有移植，已停止，不生成剧情');
-    return;
-  }
-  if (!wt_unlocked.value) {
-    console.info('[lvqingqing] 吴恬恬进场正文还没有移植，已停止，不解锁');
+  const ctx = { playerName: player_name.value, focused: focused.value, data: data.value };
+  const days = 2 + Math.floor(Math.random() * 4);
+
+  if (!wt_unlocked.value && daily_done.value) {
+    const title = '吴恬恬初登场';
+    injectPrompts(
+      [{ id: 'special-event', position: 'in_chat', depth: 2, role: 'system', content: buildArrivalSeed() }],
+      { once: true },
+    );
+    await generate({ user_input: `触发事件【${title}】在场角色吕青青。地点：公司接收区。时间前进${days}天。` });
+    await concealTrigger(title);
+    updateVariablesWith(
+      variables => {
+        _.set(variables, 'stat_data.系统.已登场.吴恬恬', true);
+        _.set(variables, 'stat_data.系统.天数', (Number(_.get(variables, 'stat_data.系统.天数')) || 1) + days);
+        if (_.get(variables, 'stat_data.吴恬恬') === undefined) {
+          _.set(variables, 'stat_data.吴恬恬', { 养分值: 20, 已结算阶段: '初始', 心声: '', 情绪: '平静' });
+        }
+      },
+      { type: 'message', message_id: 'latest' },
+    );
     return;
   }
 
-  const event = pickRandomEvent({ playerName: player_name.value, focused: focused.value, data: data.value });
-  if (!event) {
-    console.info('[lvqingqing] 当前没有可用的事件');
-    return;
-  }
-    console.info('[lvqingqing] 触发特殊事件:', event.title);
-    injectPrompts(
-      [{ id: 'special-event', position: 'in_chat', depth: 2, role: 'system', content: event.build({ playerName: player_name.value, focused: focused.value, data: data.value }) }],
-      { once: true },
-    );
-    try {
-      await generate({ user_input: '（一段特别的小剧情，就此展开）' });
-    } catch (error) {
-      console.error('[lvqingqing] 特殊事件生成失败', error);
-    }
-    return;
-  }
+  const pool = EVENT_POOL.filter(event => event.requires !== 'wutiantian' || wt_unlocked.value);
+  const event = pickRandomEvent(ctx, pool);
+  if (!event) return;
+  const place = event.requires === 'wutiantian' ? '吴恬恬的宿舍' : '公司与生活区';
+  injectPrompts(
+    [{
+      id: 'special-event',
+      position: 'in_chat',
+      depth: 2,
+      role: 'system',
+      content: `${event.build(ctx)}\n时间前进 ${days} 天。按大纲发挥，不替玩家做决定。`,
+    }],
+    { once: true },
+  );
+  await generate({
+    user_input: `触发事件【${event.title}】在场角色${presentNames()}。地点：${place}。时间前进${days}天。`,
+  });
+  await concealTrigger(event.title);
+  updateVariablesWith(
+    variables => {
+      const next = (Number(_.get(variables, 'stat_data.系统.日常已触发')) || 0) + 1;
+      _.set(variables, 'stat_data.系统.日常已触发', next);
+      _.set(variables, 'stat_data.系统.天数', (Number(_.get(variables, 'stat_data.系统.天数')) || 1) + days);
+      if (event.id === 'wt-stomach-flare') {
+        _.set(variables, 'stat_data.吴恬恬.养分值', 60);
+        _.set(variables, 'stat_data.吴恬恬.已结算阶段', '纤细');
+      }
+    },
+    { type: 'message', message_id: 'latest' },
+  );
+}
 </script>
 
 <template>

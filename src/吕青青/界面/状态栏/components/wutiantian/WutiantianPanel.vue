@@ -69,6 +69,13 @@ const PORTRAITS: Record<string, readonly string[]> = {
   '纤细/害羞': ['https://i.meee.com.tw/PK5hiGI.png', 'https://i.meee.com.tw/Jg1XngM.png', 'https://i.meee.com.tw/uxaXk2H.png'],
   '纤细/发情': ['https://i.meee.com.tw/CnPU49i.png', 'https://i.meee.com.tw/F4TLW3Q.png'],
   '匀称/平静': ['https://i.meee.com.tw/ENXQz7v.png'],
+  '丰满/平静': ['https://i.meee.com.tw/B0at0kW.png', 'https://i.meee.com.tw/X0BObqF.png'],
+  '丰满/开心': ['https://i.meee.com.tw/b5F0I1W.png', 'https://i.meee.com.tw/HvHgFaC.png'],
+  '丰满/撒娇': ['https://i.meee.com.tw/xv8nO48.png'],
+  '丰满/动情': ['https://i.meee.com.tw/aBfxHpS.png'],
+  '丰满/挑逗': ['https://i.meee.com.tw/2Q7BNRS.png', 'https://i.meee.com.tw/ZqXTJAj.png'],
+  '丰满/愉悦': ['https://i.meee.com.tw/zDkFJ0x.png'],
+  '超重/平静': ['https://i.meee.com.tw/n94WKdO.png'],
 };
 </script>
 

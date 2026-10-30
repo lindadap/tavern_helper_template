@@ -34,7 +34,7 @@ export const Schema = z.object({
         .transform(v => Math.min(Math.max(v, 0), 200)),
       已结算阶段: z.enum(['初始', '纤细', '匀称', '丰满', '超重']).catch('初始'),
       心声: z.string().catch(''),
-      情绪: z.enum(['害怕', '平静', '开心', '委屈', '被安抚', '害羞', '心动', '发情']).catch('平静'),
+      情绪: z.enum(['害怕', '平静', '开心', '委屈', '被安抚', '害羞', '心动', '发情', '撒娇', '动情', '挑逗', '愉悦']).catch('平静'),
     })
     .transform(data => {
       const $待结算阶段 =

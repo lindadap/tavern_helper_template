@@ -26,6 +26,12 @@ function focusedName(ctx: EventContext): string {
   return ctx.focused === 'wutiantian' ? '吴恬恬' : '吕青青';
 }
 
+function stageBand(value: number): 'low' | 'mid' | 'high' {
+  if (value <= 60) return 'low';
+  if (value <= 120) return 'mid';
+  return 'high';
+}
+
 export const EVENT_POOL: SpecialEvent[] = [
   {
     id: 'vending-machine',
@@ -170,17 +176,79 @@ export const EVENT_POOL: SpecialEvent[] = [
         '- 雨声作为氛围, 结尾到家时的温暖瞬间 (热毛巾、姜茶、或她的一句心里话)',
       ]),
   },
+  {
+    id: 'lq-discipline-caught',
+    title: '收起爪子',
+    requires: 'lvqingqing',
+    build: ctx => {
+      const band = stageBand(ctx.data.吕青青.塑形度);
+      const reaction =
+        band === 'low'
+          ? '低塑形度：立刻收起爪子，得意自己是主人最棒最强的猫猫，找主人讨赏。'
+          : band === 'mid'
+            ? '中塑形度：羞涩，后怕暴力的一面被心上人看见。可以吹口哨转移注意力，也可以落荒而逃。'
+            : '高塑形度：招呼主人过来一起教训犯错的异种娘，摆出老板娘的气势。';
+      return directive([
+        '请演出「吕青青教训其他异种娘时被主人撞见」。',
+        `设定: ${ctx.playerName} 撞见吕青青正在教训其他异种娘。她一看见主人，立刻收起爪子。当前塑形度 ${ctx.data.吕青青.塑形度}。`,
+        `反应只走这一档: ${reaction}`,
+        '要求: 按大纲发挥，保留被撞见、收爪子和这一档反应，不替玩家做决定。',
+      ]);
+    },
+  },
+  {
+    id: 'lq-social-review',
+    title: '社会化评选',
+    requires: 'lvqingqing',
+    build: ctx => {
+      const band = stageBand(ctx.data.吕青青.塑形度);
+      const reaction =
+        band === 'low'
+          ? '低塑形度：因为可爱大受欢迎，享受一群人类男女安稳的大手揉耳朵，享受投喂。记者给公司全体打满分并高强度夸赞主人。事后她从怀里拿出藏起来的零食献给主人。'
+          : band === 'mid'
+            ? '中塑形度：尴尬而顺从地接受抚摸，对其他男性摸耳朵明显抗拒；被女孩子摸时也用湿润的眼睛盯着主人，怕被误会。记者敬佩驯服能力并打出高分。事后她单独把所有零食献给主人讨饶，用更甜美、更顺从的态度讨好。'
+            : '高塑形度：拒绝所有人抚摸，用有逻辑而温和的话表明只允许主人摸耳朵，然后配合拍照摆姿势，收下零食。记者依旧打出高分。';
+      return directive([
+        '请演出「吕青青代表参加异种娘社会化程度评选」。',
+        `设定: 定期评选，她因为可爱而大受欢迎。当前塑形度 ${ctx.data.吕青青.塑形度}。`,
+        `反应只走这一档: ${reaction}`,
+        '要求: 按大纲发挥有趣的现场细节，不替玩家做决定。',
+      ]);
+    },
+  },
+  {
+    id: 'wt-stomach-flare',
+    title: '胃病与甜点',
+    requires: 'wutiantian',
+    build: ctx =>
+      directive([
+        '请演出「吴恬恬犯胃病，主人带着甜点来到宿舍」。',
+        `设定: ${ctx.playerName} 一开门，发现她因为胃病发作而变得纤细可爱。养分值在这次事件里当场变为 60，已结算阶段改为纤细。`,
+        '要求: 她变得更喜欢撒娇和黏人，往主人怀里窝。按大纲发挥，不替玩家做决定。',
+      ]),
+  },
+  {
+    id: 'wt-sleeping-beauty',
+    title: '装睡的睡美人',
+    requires: 'wutiantian',
+    build: ctx =>
+      directive([
+        '请演出「吴恬恬在宿舍装睡」。',
+        `设定: ${ctx.playerName} 来到宿舍，门内有各种声音。进去后发现她正在装睡，书桌上有《睡美人》。她把嘴巴微微嘟起，看起来很可爱。`,
+        '要求: 停在这个画面，不要替玩家做决定，不要替她揭穿或推进下一步。',
+      ]),
+  },
 ];
 
-/** 从满足条件的事件中随机抽取一个 (纯随机, 每次点击独立) */
-export function pickRandomEvent(ctx: EventContext): SpecialEvent | undefined {
-  const pool = EVENT_POOL.filter(e => {
+/** 从当前阶段的事件池随机抽取一个 */
+export function pickRandomEvent(ctx: EventContext, pool: SpecialEvent[]): SpecialEvent | undefined {
+  const candidates = pool.filter(e => {
     if (e.requires === 'lvqingqing' && ctx.focused !== 'lvqingqing') return false;
     if (e.requires === 'wutiantian' && ctx.focused !== 'wutiantian') return false;
     if (e.requires === 'both' && ctx.data.系统.已登场?.['吴恬恬'] !== true) return false;
     if (e.condition && !e.condition(ctx)) return false;
     return true;
   });
-  if (pool.length === 0) return undefined;
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (candidates.length === 0) return undefined;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
