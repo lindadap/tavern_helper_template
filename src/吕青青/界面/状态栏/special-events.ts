@@ -11,6 +11,7 @@ export interface EventContext {
 export interface SpecialEvent {
   id: string;
   title: string;
+  location: string;
   /** any=任意聚焦可用; lvqingqing/wutiantian=需要对应女主聚焦; both=双女主均已登场 */
   requires: 'any' | 'lvqingqing' | 'wutiantian' | 'both';
   /** 额外条件 (如阶段/数值门槛), 返回 false 则不进入候选 */
@@ -35,6 +36,7 @@ function stageBand(value: number): 'low' | 'mid' | 'high' {
 export const EVENT_POOL: SpecialEvent[] = [
   {
     id: 'vending-machine',
+    location: '公司休息区的自动售货机前',
     title: '自动售货机的奇迹',
     requires: 'any',
     build: ctx =>
@@ -49,6 +51,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'first-message',
+    location: '公司休息区',
     title: '第一条消息',
     requires: 'any',
     build: ctx =>
@@ -63,6 +66,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'supermarket',
+    location: '公司附近的超市',
     title: '第一次逛超市',
     requires: 'any',
     build: ctx =>
@@ -77,6 +81,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'harem-fire',
+    location: '公司公共区域',
     title: '后宫起火',
     requires: 'both',
     build: ctx =>
@@ -91,6 +96,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'bond-warmer',
+    location: '吕青青的宿舍',
     title: '猫娘们变好了',
     requires: 'both',
     build: ctx =>
@@ -105,6 +111,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'bond-chill',
+    location: '公司走廊',
     title: '猫娘们闹别扭',
     requires: 'both',
     build: ctx =>
@@ -119,6 +126,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'tummy-ache',
+    location: '吴恬恬的宿舍',
     title: '恬恬的胃',
     requires: 'wutiantian',
     build: ctx =>
@@ -134,6 +142,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'night-guard',
+    location: '公司夜间走廊',
     title: '青青的守望',
     requires: 'lvqingqing',
     condition: ctx => ctx.data.吕青青.塑形度 > 60,
@@ -149,6 +158,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'snack-cache',
+    location: '吕青青的宿舍',
     title: '藏零食的小偷',
     requires: 'wutiantian',
     condition: ctx => (ctx.data.吴恬恬?.养分值 ?? 0) >= 140,
@@ -164,6 +174,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'rain-day',
+    location: '公司门外的雨中',
     title: '雨天共伞',
     requires: 'any',
     build: ctx =>
@@ -178,6 +189,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'lq-discipline-caught',
+    location: '异种娘训练场',
     title: '收起爪子',
     requires: 'lvqingqing',
     build: ctx => {
@@ -198,6 +210,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'lq-social-review',
+    location: '社会化程度评选会场',
     title: '社会化评选',
     requires: 'lvqingqing',
     build: ctx => {
@@ -218,6 +231,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'wt-stomach-flare',
+    location: '吴恬恬的宿舍',
     title: '胃病与甜点',
     requires: 'wutiantian',
     build: ctx =>
@@ -229,6 +243,7 @@ export const EVENT_POOL: SpecialEvent[] = [
   },
   {
     id: 'wt-sleeping-beauty',
+    location: '吴恬恬的宿舍',
     title: '装睡的睡美人',
     requires: 'wutiantian',
     build: ctx =>

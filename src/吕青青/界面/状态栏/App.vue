@@ -48,7 +48,9 @@ function buildArrivalSeed(): string {
 }
 
 function presentNames(): string {
-  if (wt_unlocked.value && data.value.系统.当前主角 === '吴恬恬') return '吕青青、吴恬恬';
+  const latest = getChatMessages(-1)[0]?.message ?? '';
+  const names = ['吕青青', '吴恬恬'].filter(name => latest.includes(name));
+  if (names.length) return names.join('，');
   return data.value.系统.当前主角 || '吕青青';
 }
 
@@ -73,7 +75,7 @@ async function onSpecialEvent() {
       [{ id: 'special-event', position: 'in_chat', depth: 2, role: 'system', content: buildArrivalSeed() }],
       { once: true },
     );
-    await generate({ user_input: `触发事件【${title}】在场角色吕青青。地点：公司接收区。时间前进${days}天。` });
+    await generate({ user_input: `触发事件【${title}】在场角色${presentNames()}。地点公司接收区` });
     await concealTrigger(title);
     updateVariablesWith(
       variables => {
@@ -91,7 +93,6 @@ async function onSpecialEvent() {
   const pool = EVENT_POOL.filter(event => event.requires !== 'wutiantian' || wt_unlocked.value);
   const event = pickRandomEvent(ctx, pool);
   if (!event) return;
-  const place = event.requires === 'wutiantian' ? '吴恬恬的宿舍' : '公司与生活区';
   injectPrompts(
     [{
       id: 'special-event',
@@ -103,7 +104,7 @@ async function onSpecialEvent() {
     { once: true },
   );
   await generate({
-    user_input: `触发事件【${event.title}】在场角色${presentNames()}。地点：${place}。时间前进${days}天。`,
+    user_input: `触发事件【${event.title}】在场角色${presentNames()}。地点${event.location}`,
   });
   await concealTrigger(event.title);
   updateVariablesWith(
