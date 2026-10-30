@@ -109,18 +109,6 @@
         "心声",
         "情绪"
       ]
-    },
-    "心情日志": {
-      "default": {},
-      "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "description": "天数"
-      },
-      "additionalProperties": {
-        "type": "string",
-        "description": "当日心情"
-      }
     }
   },
   "required": [

@@ -27,7 +27,6 @@ export function resolvePreviewData(): Schema {
     系统: { ...DEFAULT_DATA.系统, ...provided?.系统 },
     吕青青: { ...DEFAULT_DATA.吕青青, ...provided?.吕青青 },
     吴恬恬: { ...DEFAULT_DATA.吴恬恬, ...provided?.吴恬恬 },
-    心情日志: { ...provided?.心情日志 },
   };
   const result = Schema.safeParse(merged);
   if (result.error) {

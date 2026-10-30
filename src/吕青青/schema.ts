@@ -43,11 +43,6 @@ export const Schema = z.object({
     })
     .optional()
     .catch(undefined),
-
-  心情日志: z
-    .record(z.string().describe('天数'), z.string().describe('当日心情'))
-    .default({})
-    .transform(data => Object.fromEntries(Object.entries(data).filter(([, v]) => v && v.length > 0))),
 });
 
 export type Schema = z.output<typeof Schema>;
