@@ -20,6 +20,12 @@ import { PORTRAITS } from '../../portraits';
 
 // 塑形度 → 白瓷化比例 (0~1): 越高整体越白, 与现有配色调和出青花瓷质感
 const whiteness = computed(() => props.heroine.塑形度 / 300);
+const stageLine = computed(() => ({
+  宠物期: '青青是主人的宠物，理所当然要被宠爱的宠物',
+  暧昧期: '青青。。不知道自己是不是宠物。',
+  恋爱期: '青青想要成为心爱之人的心爱之人',
+  妻子期: '青青是老公的老婆，理所当然要被宠爱的老婆。',
+})[props.heroine.$阶段]);
 </script>
 
 <template>
@@ -53,10 +59,10 @@ const whiteness = computed(() => props.heroine.塑形度 / 300);
 
       <div class="info-row">
         <EmotionCard :emotion="heroine.情绪" />
-        <section class="card"><span class="card-label">当前阶段</span><p>{{ heroine.$阶段 }}</p></section>
+        <VoiceCard :voice="heroine.心声" />
       </div>
 
-      <VoiceCard :voice="heroine.心声" />
+      <p class="card stage-line">{{ stageLine }}</p>
     </main>
 
     <SpecialButton @trigger="$emit('special-event')" />
@@ -64,6 +70,8 @@ const whiteness = computed(() => props.heroine.塑形度 / 300);
 </template>
 
 <style scoped>
+.stage-line { width:100%; margin:0; color:var(--c-text-primary); font-size:13.5px; line-height:1.8; overflow-wrap:anywhere; }
+.info-row { grid-template-columns:minmax(0, 0.85fr) minmax(0, 1.15fr); align-items:stretch; }
 .lq-root {
   --w: var(--whiteness, 0);
   /* 背景随塑形度慢慢变白, 但卡片/文字在窄窗口内陡峭切换, 避免中间灰区对比度塌陷 */

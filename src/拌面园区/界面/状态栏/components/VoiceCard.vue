@@ -24,9 +24,7 @@ defineProps<{ voice: string }>();
   font-style: italic;
   line-height: 1.65;
   color: var(--c-text-primary);
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 </style>
