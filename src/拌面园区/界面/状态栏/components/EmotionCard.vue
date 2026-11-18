@@ -1,12 +1,26 @@
 <script setup lang="ts">
-defineProps<{ emotion: string }>();
+import type { EMOTIONS } from '../../../schema';
+
+type Emotion = (typeof EMOTIONS)[number];
+defineProps<{ emotion: Emotion }>();
+
+const emojiByEmotion = {
+  平静: '😌',
+  开心: '😄',
+  发情: '😍',
+  生气: '😠',
+  暴怒: '🤬',
+  委屈: '🥺',
+  无语: '😑',
+  害羞: '😳',
+} as const satisfies Record<Emotion, string>;
 </script>
 
 <template>
   <section class="card emotion-card">
     <span class="card-label">当前情绪</span>
     <div class="orb">
-      <span class="orb-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="18" cy="18" r="13"/><path d="M12 14h1m10 0h1M12 22q6 5 12 0"/></svg></span>
+      <span class="orb-icon" aria-hidden="true">{{ emojiByEmotion[emotion] }}</span>
       <span class="orb-ring"></span>
     </div>
     <span class="emotion-name">{{ emotion }}</span>
@@ -46,7 +60,12 @@ defineProps<{ emotion: string }>();
   animation: orb-spin 9s linear infinite;
 }
 
-.orb-icon { font-size: 34px; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35)); }
+.orb-icon {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 38px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
 
 .emotion-name {
   font-weight: 700;
