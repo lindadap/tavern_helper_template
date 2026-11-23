@@ -12,7 +12,7 @@ const pending = ref(false);
 async function advance() {
   if (pending.value) return;
   pending.value = true;
-  try { message.value = await requestTimeAdvance(props.source); }
+  try { message.value = await requestTimeAdvance(props.source, data.value); }
   catch (error) { console.error(error); message.value = '发送失败，请检查聊天记录后重试。'; }
   finally { pending.value = false; }
 }
