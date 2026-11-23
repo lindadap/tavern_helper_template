@@ -13,16 +13,28 @@ export interface AdvanceHistory {
 
 export interface CommonEvent {
   id: string;
-  category: '关系变好' | '关系变差' | '现代物品惊奇' | '猫娘闯祸';
+  category: '关系变好' | '关系变差' | '现代物品惊奇' | '猫娘闯祸' | '温馨日常';
   title: string;
   outline: string;
 }
 
 // Exclusive event weight when the current phase slot is still available (50%).
 export const EXCLUSIVE_WEIGHT = 0.5;
+const RECENT_COMMON_WINDOW = 6;
 
 // Common event pool shared across advances.
 export const COMMON_EVENT_POOL: CommonEvent[] = [
+  // --- 1. 异种娘之间关系变好（主角不参与过程，末尾登场看结果） ---
+  {
+    id: 'bond_sunbath_pile',
+    category: '关系变好',
+    title: '猫娘叠在一起晒太阳',
+    outline:
+      '【视角要求】先聚焦园区客厅里的猫娘们，{{user}}暂不介入，直到故事末尾推门回来才撞见结果。' +
+      '午后阳光斜斜铺在客厅地毯上，暖洋洋得让人犯困。原本各占山头、平时还有点互相戒备的猫娘们不知不觉往最暖和的那块阳光里挪，' +
+      '先是一只小猫娘迷迷糊糊靠过来，连平日里冷着脸的吕青青也没把人推开，最后几只猫娘竟毛茸茸地叠成一团晒太阳，耳朵贴着耳朵、尾巴松松搭在一起发出轻轻呼噜声。' +
+      '{{user}}办完事推门回来时正好撞见这副超可爱的“猫猫叠叠乐”，吕青青惊醒后还嘴硬不承认刚才靠得很舒服。',
+  },
   {
     id: 'bond_snack_truce',
     category: '关系变好',
@@ -41,6 +53,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
       '午后停电空调停了一会儿，几只异种娘热得无精打采，吕青青嘴上嫌吵却默默把最凉快的瓷砖地和风扇位让出一半，还顺手帮旁边打瞌睡的小猫娘挡住刺眼阳光。' +
       '等{{user}}办完事回来时，看见原本各占山头的几只猫娘竟凑成一团打盹，关系明显热络了许多。',
   },
+
+  // --- 2. 异种娘之间关系变差 / 吵架（需要 {{user}} 出面协调） ---
   {
     id: 'conflict_territory',
     category: '关系变差',
@@ -59,6 +73,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
       '吕青青误以为对方故意抢主人的气味，冷脸质问把对方吓得委屈炸毛，两只猫闹得不可开交、互不理睬，连晚饭都分开吃。' +
       '需要{{user}}弄清误会并出面安抚调停。',
   },
+
+  // --- 3. 面对现代物品产生的惊奇/困惑 ---
   {
     id: 'modern_robot_vacuum',
     category: '现代物品惊奇',
@@ -67,6 +83,32 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
       '园区新添了一台扫地机器人，启动后嗡嗡转着圈满地跑。吕青青和几只猫娘如临大敌，把这台会自己避障的圆盘当成入侵领地的铁壳精怪，' +
       '排成一排蹲在沙发上紧盯它的走位，吕青青甚至做好了随时冲上去一肘拍扁它的架势。' +
       '描写她们对现代家电一本正经的离谱猜测与猫科本能反应，{{user}}在末尾登场收拾残局或科普。',
+  },
+  {
+    id: 'modern_vending_machine',
+    category: '现代物品惊奇',
+    title: '自动售货机的奇迹',
+    outline:
+      '{{user}}带吕青青外出路过街角的自动售货机。她对这台“吞下硬币就会咚一声吐出饮料的铁箱子”充满惊奇——' +
+      '投币的仪式感、按键亮灯、罐子滚落出来的声响每一步都让她冰蓝的眼睛微微发亮，甚至一本正经怀疑里面是不是蹲着只负责递东西的小精怪，还差点对机器点点头道谢。' +
+      '轻松温馨的小品，写出她面对现代造物时的反差萌与{{user}}的自然互动。',
+  },
+  {
+    id: 'modern_first_message',
+    category: '现代物品惊奇',
+    title: '第一条手机消息',
+    outline:
+      '{{user}}给吕青青配了手机并教她用聊天软件。当晚她躲在房间里对着输入框纠结了半天，手指戳屏幕又重又笨拙，删了又写、错字连篇还乱点了个离谱表情包，' +
+      '终于鼓起勇气给{{user}}发出了人生第一条消息。写出消息原文、{{user}}看到手机震动后的反应，以及她躲在门后竖着猫耳偷听动静的可爱模样。',
+  },
+  {
+    id: 'modern_supermarket',
+    category: '现代物品惊奇',
+    title: '第一次逛大超市',
+    outline:
+      '{{user}}带吕青青去大型超市采购。琳琅满目的货架、生鲜区的鱼和零食区对她来说全是新大陆——' +
+      '在生鲜区挪不动步、尾巴不受控地轻轻甩动、被头顶突然响起的超市广播吓得耳朵一抖，还偷偷往购物车里塞了两包小零食。' +
+      '写出{{user}}的纵容互动，以及结账后她把长长的小票当宝物收进口袋的小细节。',
   },
   {
     id: 'modern_phone_video',
@@ -85,6 +127,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
       '一只猫娘看着冷饭放进微波炉转几圈、“叮”一声就冒出热气，惊奇得眼睛发亮，拉着吕青青凑在玻璃门前研究里面的盘子为什么自己转。' +
       '她们正嘀咕能不能把冻硬的小鱼干或者湿毛巾也塞进去“施法”，差点把带锡纸的包装一起放进去，正好被刚进厨房的{{user}}撞见。',
   },
+
+  // --- 4. 猫娘闯祸（打碎东西/手忙脚乱善后） ---
   {
     id: 'trouble_broken_mug',
     category: '猫娘闯祸',
@@ -101,6 +145,24 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     outline:
       '猫娘们嘴馋提前溜进厨房偷看晚饭准备的拌面酱，结果爪子一滑把酱料罐碰翻，浓郁的酱汁泼了一桌还沾到了猫爪和裙角上。' +
       '为了销毁证据，闯祸的猫娘一边偷舔爪子上的酱一边拿抹布越擦越花，彻底暴露了作案现场。{{user}}推门而入时正撞上这副惨状。',
+  },
+
+  // --- 5. 温馨日常 ---
+  {
+    id: 'daily_night_guard',
+    category: '温馨日常',
+    title: '深夜门口的守望',
+    outline:
+      '凌晨{{user}}起夜推开门，发现吕青青正抱膝靠在房门口的地板上打盹，猫耳却还警觉地立着——不知道守了多久。' +
+      '被发现后她嘴硬找借口（“顺手路过”“门口地板凉快”），死活不承认是放心不下主人，等着{{user}}戳破她的小心思并把她拎回屋里。',
+  },
+  {
+    id: 'daily_rain_umbrella',
+    category: '温馨日常',
+    title: '雨天共伞',
+    outline:
+      '外出时突降大雨，{{user}}和吕青青只有一把伞，两个人挤在伞下往园区走。' +
+      '写出猫娘讨厌淋雨的细节（耳朵沾到水珠抖一抖、轻轻甩水、怕淋湿悄悄往{{user}}身边挤、手指攥住衣角），结尾回到暖和的屋里擦头发喝热饮。',
   },
 ];
 
@@ -182,18 +244,22 @@ export function pickAdvanceEvent(
     const picked = pool[Math.floor(rng() * pool.length)];
 
     eventId = picked.id;
-    nextHistory.recentCommonIds = [...nextHistory.recentCommonIds, picked.id].slice(-4);
+    nextHistory.recentCommonIds = [...nextHistory.recentCommonIds, picked.id].slice(-RECENT_COMMON_WINDOW);
     eventTitle = picked.title;
     eventType = `公共事件·${picked.category}`;
     eventOutline = picked.outline;
   }
 
+  // Wrapped in <TimeAdvanceEvent> so ST display regex masks the prompt as "事件触发中" for users
+  // while keeping the full directive visible to the LLM.
   const prompt = [
+    '<TimeAdvanceEvent>',
     `[时间推进] 距上次互动已过去5天，当前时间来到第${nextDay}天（请务必将变量「系统.天数」更新为${nextDay}）。`,
     `请先用2-3句话自然过渡这5天的园区日常，再严格围绕以下随机事件大纲展开剧情：`,
     `【${eventType}｜${eventTitle}】`,
     eventOutline,
     `要求：紧扣人物当前阶段人设（吕青青当前为${ctx.stage}，塑形度${ctx.shaping}），结尾自然留出给{{user}}介入或回应的空间。`,
+    '</TimeAdvanceEvent>',
   ].join('\n');
 
   return { prompt, nextHistory, eventId, eventTitle, isExclusive, nextDay };
