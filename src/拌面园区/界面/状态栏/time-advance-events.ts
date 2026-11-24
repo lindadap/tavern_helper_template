@@ -1,3 +1,5 @@
+import { pickLvqingqingLocation, type CompanyLocation } from '../../schema';
+
 export type HeroineStage = '宠物期' | '暧昧期' | '恋爱期' | '妻子期';
 
 export interface AdvanceContext {
@@ -250,6 +252,8 @@ export function pickAdvanceEvent(
     eventOutline = picked.outline;
   }
 
+  const rolledLocation: CompanyLocation = pickLvqingqingLocation(ctx.stage, rng);
+
   // Wrapped in <TimeAdvanceEvent> so ST display regex masks the prompt as "事件触发中" for users
   // while keeping the full directive visible to the LLM.
   const prompt = [
@@ -258,9 +262,10 @@ export function pickAdvanceEvent(
     `请先用2-3句话自然过渡这5天的园区日常，再严格围绕以下随机事件大纲展开剧情：`,
     `【${eventType}｜${eventTitle}】`,
     eventOutline,
+    `【园区动向刷新】经过这5天，吕青青本轮按阶段日常倾向自然活动于「${rolledLocation}」（若上方事件本身明确发生在其他具体地点，以事件实际落点为准）；请务必在本回合变量更新中，按正文结束时的实际场景同步更新「吕青青.位置」与「系统.玩家位置」。`,
     `要求：紧扣人物当前阶段人设（吕青青当前为${ctx.stage}，塑形度${ctx.shaping}），结尾自然留出给{{user}}介入或回应的空间。`,
     '</TimeAdvanceEvent>',
   ].join('\n');
 
-  return { prompt, nextHistory, eventId, eventTitle, isExclusive, nextDay };
+  return { prompt, nextHistory, eventId, eventTitle, isExclusive, nextDay, rolledLocation };
 }

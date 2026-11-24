@@ -6,15 +6,26 @@ import EmotionCard from '../EmotionCard.vue';
 import PortraitStage from '../PortraitStage.vue';
 import VoiceCard from '../VoiceCard.vue';
 import SpecialButton from '../SpecialButton.vue';
+import CompanyMapPanel from '../CompanyMapPanel.vue';
 import ShapingMeter from './ShapingMeter.vue';
+import type { CompanyLocation } from '../../../../schema';
+import type { MapOccupant } from '../../map-data';
 
 const props = defineProps<{
   playerName: string;
   day: number;
   heroine: Schema['吕青青'];
+  playerLocation: string;
+  occupants: MapOccupant[];
+  mapBusy: boolean;
+  mapNotice: string;
+  canEditMap: boolean;
 }>();
 
-defineEmits<{ 'special-event': [] }>();
+defineEmits<{
+  'special-event': [];
+  'move-player': [location: CompanyLocation];
+}>();
 
 import { PORTRAITS } from '../../portraits';
 
@@ -66,6 +77,15 @@ const stageLine = computed(() => ({
     </main>
 
     <SpecialButton @trigger="$emit('special-event')" />
+
+    <CompanyMapPanel
+      :player-location="playerLocation"
+      :occupants="occupants"
+      :busy="mapBusy"
+      :notice="mapNotice"
+      :can-edit="canEditMap"
+      @move-player="$emit('move-player', $event)"
+    />
   </section>
 </template>
 
