@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ playerName: string; day: number; stage: string }>();
+defineProps<{ playerName: string; day: number; stage: string; present?: boolean }>();
 </script>
 
 <template>
@@ -7,6 +7,7 @@ defineProps<{ playerName: string; day: number; stage: string }>();
     <div class="who">
       <span class="name-pill">吕青青</span>
       <span class="stage-badge">{{ stage }}</span>
+      <span v-if="present === false" class="absent-chip">不在场</span>
     </div>
     <span class="day-chip">第 {{ day }} 天</span>
   </header>
@@ -55,6 +56,16 @@ defineProps<{ playerName: string; day: number; stage: string }>();
   border: 1px solid color-mix(in srgb, var(--c-stage) 55%, transparent);
   background: color-mix(in srgb, var(--c-stage) 14%, transparent);
   box-shadow: 0 0 16px color-mix(in srgb, var(--c-stage) 30%, transparent);
+  white-space: nowrap;
+}
+
+.absent-chip {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--c-border-glass);
+  background: color-mix(in srgb, var(--c-surface) 75%, transparent);
   white-space: nowrap;
 }
 </style>

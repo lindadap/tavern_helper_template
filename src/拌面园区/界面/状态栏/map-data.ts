@@ -22,8 +22,9 @@ export interface FloorBandSpec {
 export interface MapOccupant {
   id: string;
   name: string;
-  kind: 'player' | 'npc';
+  kind: 'player' | 'heroine' | 'npc';
   location: string;
+  color?: string;
 }
 
 export const COMPANY_FLOORS: readonly FloorBandSpec[] = [

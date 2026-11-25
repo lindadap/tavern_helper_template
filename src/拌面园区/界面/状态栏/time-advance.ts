@@ -25,6 +25,7 @@ export async function requestTimeAdvance(source: 'tavern' | 'preview', data: Sch
       day: data.系统.天数,
       shaping: data.吕青青.塑形度,
       stage: data.吕青青.$阶段,
+      rosterCount: Object.keys(data.名册).length,
     },
     readHistory(),
   );

@@ -7,9 +7,11 @@ import PortraitStage from '../PortraitStage.vue';
 import VoiceCard from '../VoiceCard.vue';
 import SpecialButton from '../SpecialButton.vue';
 import CompanyMapPanel from '../CompanyMapPanel.vue';
+import RosterPanel from '../RosterPanel.vue';
 import ShapingMeter from './ShapingMeter.vue';
-import type { CompanyLocation } from '../../../../schema';
+import type { CompanyLocation, RosterMember } from '../../../../schema';
 import type { MapOccupant } from '../../map-data';
+import type { RosterArchiveMap } from '../../roster-archive';
 
 const props = defineProps<{
   playerName: string;
@@ -17,14 +19,19 @@ const props = defineProps<{
   heroine: Schema['吕青青'];
   playerLocation: string;
   occupants: MapOccupant[];
+  roster: Record<string, RosterMember>;
+  archive: RosterArchiveMap;
   mapBusy: boolean;
   mapNotice: string;
+  rosterNotice: string;
   canEditMap: boolean;
 }>();
 
 defineEmits<{
   'special-event': [];
   'move-player': [location: CompanyLocation];
+  'archive-member': [name: string];
+  'recall-member': [name: string];
 }>();
 
 import { PORTRAITS } from '../../portraits';
@@ -52,7 +59,7 @@ const stageLine = computed(() => ({
     <div class="glaze" aria-hidden="true"></div>
     <div class="particles" aria-hidden="true"><i v-for="n in 8" :key="n"></i></div>
 
-    <HeaderBar :player-name="playerName" :day="day" :stage="heroine.$阶段" />
+    <HeaderBar :player-name="playerName" :day="day" :stage="heroine.$阶段" :present="heroine.在场" />
 
     <main class="stack">
       <div class="portrait-zone">
@@ -85,6 +92,16 @@ const stageLine = computed(() => ({
       :notice="mapNotice"
       :can-edit="canEditMap"
       @move-player="$emit('move-player', $event)"
+    />
+
+    <RosterPanel
+      :roster="roster"
+      :archive="archive"
+      :busy="mapBusy"
+      :can-edit="canEditMap"
+      :notice="rosterNotice"
+      @archive-member="$emit('archive-member', $event)"
+      @recall-member="$emit('recall-member', $event)"
     />
   </section>
 </template>

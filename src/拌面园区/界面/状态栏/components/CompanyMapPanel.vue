@@ -57,7 +57,20 @@ function hasPlayer(roomId: CompanyLocation) {
 }
 
 function hasNpc(roomId: CompanyLocation) {
-  return occupantsIn(roomId).some(occ => occ.kind === 'npc');
+  return occupantsIn(roomId).some(occ => occ.kind !== 'player');
+}
+
+function occClass(occ: MapOccupant) {
+  if (occ.kind === 'player') return 'occ-player';
+  if (occ.kind === 'heroine') return 'occ-npc';
+  return 'occ-roster';
+}
+
+function occStyle(occ: MapOccupant) {
+  if (occ.kind === 'npc' && occ.color) {
+    return { '--occ-color': occ.color };
+  }
+  return undefined;
 }
 
 function selectRoom(roomId: CompanyLocation) {
@@ -146,7 +159,8 @@ function iconPaths(icon: RoomIconKey): string[] {
                 v-for="occ in occupantsIn(room.id)"
                 :key="occ.id"
                 class="occ-pill"
-                :class="occ.kind === 'player' ? 'occ-player' : 'occ-npc'"
+                :class="occClass(occ)"
+                :style="occStyle(occ)"
               >
                 <i class="pill-dot" aria-hidden="true"></i>
                 {{ occ.name }}
@@ -184,7 +198,8 @@ function iconPaths(icon: RoomIconKey): string[] {
               v-for="occ in selectedOccupants"
               :key="occ.id"
               class="occ-pill"
-              :class="occ.kind === 'player' ? 'occ-player' : 'occ-npc'"
+              :class="occClass(occ)"
+              :style="occStyle(occ)"
             >
               <i class="pill-dot" aria-hidden="true"></i>
               {{ occ.name }}
@@ -472,6 +487,16 @@ function iconPaths(icon: RoomIconKey): string[] {
   background: color-mix(in srgb, var(--c-stage) 18%, var(--c-surface-strong));
   border: 1px solid color-mix(in srgb, var(--c-stage) 58%, transparent);
   color: var(--c-text-primary);
+}
+
+.occ-roster {
+  background: color-mix(in srgb, var(--occ-color, #6d94c5) 20%, var(--c-surface-strong));
+  border: 1px solid color-mix(in srgb, var(--occ-color, #6d94c5) 62%, transparent);
+  color: var(--c-text-primary);
+}
+
+.occ-roster .pill-dot {
+  background: var(--occ-color, #6d94c5);
 }
 
 .outdoor-bar {

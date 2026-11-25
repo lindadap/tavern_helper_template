@@ -1,4 +1,5 @@
-import { pickLvqingqingLocation, type CompanyLocation } from '../../schema';
+import { pickLvqingqingLocation, ROSTER_SOFT_CAP, type CompanyLocation } from '../../schema';
+import { formatHeteromorphPromptBrief, rollHeteromorphSpec, type RolledHeteromorph } from '../../heteromorph-pool';
 
 export type HeroineStage = '宠物期' | '暧昧期' | '恋爱期' | '妻子期';
 
@@ -6,6 +7,7 @@ export interface AdvanceContext {
   day: number;
   shaping: number;
   stage: HeroineStage;
+  rosterCount?: number;
 }
 
 export interface AdvanceHistory {
@@ -15,7 +17,7 @@ export interface AdvanceHistory {
 
 export interface CommonEvent {
   id: string;
-  category: '关系变好' | '关系变差' | '现代物品惊奇' | '猫娘闯祸' | '温馨日常';
+  category: '关系变好' | '关系变差' | '现代物品惊奇' | '猫娘闯祸' | '温馨日常' | '新人入园';
   title: string;
   outline: string;
 }
@@ -166,6 +168,16 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
       '外出时突降大雨，{{user}}和吕青青只有一把伞，两个人挤在伞下往园区走。' +
       '写出猫娘讨厌淋雨的细节（耳朵沾到水珠抖一抖、轻轻甩水、怕淋湿悄悄往{{user}}身边挤、手指攥住衣角），结尾回到暖和的屋里擦头发喝热饮。',
   },
+
+  // --- 6. 新异种娘押送入园（调用通用哺乳动物抽卡池） ---
+  {
+    id: 'intake_new_heteromorph',
+    category: '新人入园',
+    title: '政府押送新异种娘入园',
+    outline:
+      '政府武装押送队突然送来一名新移交的危险/难驯异种娘，五花大绑带进了园区大厅或地下训练场交接。' +
+      '请先写出交接时的紧张与反差气氛，让这位新异种娘鲜活亮相，并在结尾留出空间让{{user}}决定是立刻派人上斗兽场按服还是先观察收容。',
+  },
 ];
 
 // Exclusive event for Lvqingqing: reporter interview ear-petting contrast.
@@ -232,6 +244,7 @@ export function pickAdvanceEvent(
   let eventType = '';
   let eventOutline = '';
   let isExclusive = false;
+  let rolledNewcomer: RolledHeteromorph | undefined;
 
   if (canTriggerExclusive && rng() < EXCLUSIVE_WEIGHT) {
     isExclusive = true;
@@ -241,8 +254,12 @@ export function pickAdvanceEvent(
     eventType = '吕青青专属事件';
     eventOutline = buildLvqingqingReporterOutline(ctx.stage);
   } else {
-    const candidates = COMMON_EVENT_POOL.filter(e => !history.recentCommonIds.includes(e.id));
-    const pool = candidates.length > 0 ? candidates : COMMON_EVENT_POOL;
+    const canIntake = (ctx.rosterCount ?? 0) < ROSTER_SOFT_CAP;
+    const eligible = canIntake
+      ? COMMON_EVENT_POOL
+      : COMMON_EVENT_POOL.filter(e => e.id !== 'intake_new_heteromorph');
+    const candidates = eligible.filter(e => !history.recentCommonIds.includes(e.id));
+    const pool = candidates.length > 0 ? candidates : eligible;
     const picked = pool[Math.floor(rng() * pool.length)];
 
     eventId = picked.id;
@@ -250,6 +267,11 @@ export function pickAdvanceEvent(
     eventTitle = picked.title;
     eventType = `公共事件·${picked.category}`;
     eventOutline = picked.outline;
+
+    if (picked.id === 'intake_new_heteromorph') {
+      rolledNewcomer = rollHeteromorphSpec(rng);
+      eventOutline = `${picked.outline}\n${formatHeteromorphPromptBrief(rolledNewcomer)}`;
+    }
   }
 
   const rolledLocation: CompanyLocation = pickLvqingqingLocation(ctx.stage, rng);
@@ -262,10 +284,10 @@ export function pickAdvanceEvent(
     `请先用2-3句话自然过渡这5天的园区日常，再严格围绕以下随机事件大纲展开剧情：`,
     `【${eventType}｜${eventTitle}】`,
     eventOutline,
-    `【园区动向刷新】经过这5天，吕青青本轮按阶段日常倾向自然活动于「${rolledLocation}」（若上方事件本身明确发生在其他具体地点，以事件实际落点为准）；请务必在本回合变量更新中，按正文结束时的实际场景同步更新「吕青青.位置」与「系统.玩家位置」。`,
+    `【园区动向刷新】经过这5天，吕青青本轮按阶段日常倾向自然活动于「${rolledLocation}」（若上方事件本身明确发生在其他具体地点，以事件实际落点为准）；请务必在本回合变量更新中，按正文结束时的实际场景同步更新「吕青青.位置」、「吕青青.在场」与「系统.玩家位置」。`,
     `要求：紧扣人物当前阶段人设（吕青青当前为${ctx.stage}，塑形度${ctx.shaping}），结尾自然留出给{{user}}介入或回应的空间。`,
     '</TimeAdvanceEvent>',
   ].join('\n');
 
-  return { prompt, nextHistory, eventId, eventTitle, isExclusive, nextDay, rolledLocation };
+  return { prompt, nextHistory, eventId, eventTitle, isExclusive, nextDay, rolledLocation, rolledNewcomer };
 }

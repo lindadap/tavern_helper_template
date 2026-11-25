@@ -15,6 +15,8 @@ export const COMPANY_LOCATIONS = [
 export type CompanyLocation = (typeof COMPANY_LOCATIONS)[number];
 
 export const DEFAULT_LOCATION: CompanyLocation = '训练场/斗兽场';
+export const LVQINGQING_COMBAT_POWER = 75;
+export const ROSTER_SOFT_CAP = 8;
 
 export const LVQINGQING_LOCATION_WEIGHTS = {
   early: {
@@ -74,7 +76,35 @@ export function stageOf(value: number, confirmed = false) {
   return value < 90 ? '宠物期' : value < 180 ? '暧昧期' : value < 270 || !confirmed ? '恋爱期' : '妻子期';
 }
 
+export function obedienceStageOf(value: number) {
+  return value < 30 ? '野性戒备' : value < 60 ? '勉强低头' : value < 90 ? '温顺听话' : '彻底驯服';
+}
+
+export function trustStageOf(value: number) {
+  return value < 30 ? '疏离戒心' : value < 60 ? '微有好感' : value < 90 ? '亲近依恋' : '深爱黏人';
+}
+
 const locationField = z.string().transform(normalizeLocation).prefault(DEFAULT_LOCATION);
+const dormLocationField = z.string().transform(normalizeLocation).prefault('异种娘宿舍');
+
+export const RosterMemberSchema = z.object({
+  种族: z.string().trim().min(1).prefault('猫娘'),
+  性格: z.string().trim().prefault('傲娇'),
+  外貌: z.string().trim().prefault('匀称可爱'),
+  印象颜色: z.string().trim().prefault('暖橘橙'),
+  服装风格: z.string().trim().prefault('宽松居家针织风'),
+  简介: z.string().trim().prefault('刚入园的新异种娘，还在警惕地打量四周。'),
+  位置: dormLocationField,
+  好感度: z.coerce.number().transform(v => Math.max(0, Math.min(100, Math.round(v)))).prefault(10),
+  服从度: z.coerce.number().transform(v => Math.max(0, Math.min(100, Math.round(v)))).prefault(15),
+  _战力: z.coerce.number().transform(v => Math.max(10, Math.min(100, Math.round(v)))).prefault(40),
+}).prefault({}).transform(member => ({
+  ...member,
+  $驯服阶段: obedienceStageOf(member.服从度),
+  $信任阶段: trustStageOf(member.好感度),
+}));
+
+export type RosterMember = z.output<typeof RosterMemberSchema>;
 
 export const Schema = z.object({
   系统: z.object({
@@ -85,9 +115,12 @@ export const Schema = z.object({
     塑形度: z.coerce.number().transform(v => Math.max(0, Math.min(300, v))).prefault(20),
     爱恋确认: z.boolean().prefault(false),
     情绪: z.enum(EMOTIONS).prefault('委屈'),
+    在场: z.boolean().prefault(true),
     位置: locationField,
+    _战力: z.coerce.number().transform(v => Math.max(10, Math.min(100, Math.round(v)))).prefault(LVQINGQING_COMBAT_POWER),
     心声: z.string().trim().refine(s => !/\s/u.test(s) && Array.from(s).length >= 10 && Array.from(s).length <= 30, '心声必须为10至30个字符，不能包含空白').prefault('青青再也不想被丢出去了,能留在这里吗?'),
   }).prefault({}).transform(data => ({ ...data, $阶段: stageOf(data.塑形度, data.爱恋确认) })),
+  名册: z.record(z.string().trim().min(1), RosterMemberSchema).prefault({}),
 }).prefault({});
 
 export type Schema = z.output<typeof Schema>;
