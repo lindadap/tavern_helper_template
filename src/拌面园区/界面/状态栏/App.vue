@@ -3,8 +3,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import LvqingqingPanel from './components/lvqingqing/LvqingqingPanel.vue';
 import { useDataStore, resolvePreviewData } from './store';
 import { requestTimeAdvance } from './time-advance';
+import { requestArenaBattle } from './arena-battle';
 import { ROSTER_SOFT_CAP, Schema, type CompanyLocation, type RosterMember } from '../../schema';
-import { resolveImpressionColorHex } from '../../heteromorph-pool';
+import { resolveImpressionColorHex, type RolledHeteromorph } from '../../heteromorph-pool';
 import type { MapOccupant } from './map-data';
 import { readRosterArchive, writeRosterArchive, type RosterArchiveMap } from './roster-archive';
 
@@ -224,6 +225,27 @@ async function recallMember(name: string) {
   }
 }
 
+async function startArenaBattle(payload: { fighterInput: string; opponent: RolledHeteromorph }) {
+  if (pending.value || mapBusy.value) return;
+  canEditMap.value = checkIsLatestFloor();
+  if (!canEditMap.value) {
+    mapNotice.value = '仅最新楼层可开启战斗';
+    return;
+  }
+  pending.value = true;
+  mapBusy.value = true;
+  try {
+    const notice = await requestArenaBattle(props.source, payload.fighterInput, data.value, payload.opponent);
+    if (notice) mapNotice.value = notice;
+  } catch (error) {
+    console.error('[拌面园区]', error);
+    mapNotice.value = '战斗指令发送失败，请重试';
+  } finally {
+    pending.value = false;
+    mapBusy.value = false;
+  }
+}
+
 async function advance() {
   if (pending.value) return;
   pending.value = true;
@@ -253,6 +275,7 @@ async function advance() {
     :can-edit-map="canEditMap"
     @special-event="advance"
     @move-player="movePlayer"
+    @start-battle="startArenaBattle"
     @archive-member="archiveMember"
     @recall-member="recallMember"
   />

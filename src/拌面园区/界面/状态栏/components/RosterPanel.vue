@@ -89,6 +89,8 @@ function requestRecall(name: string) {
     </button>
 
     <div v-if="expanded" class="roster-body">
+      <p class="cap-note">园区在园上限 {{ ROSTER_SOFT_CAP }} 人（仅收录变量名册中的异种娘，不含主角与吕青青）</p>
+
       <div v-if="archiveCount > 0" class="roster-tabs" role="tablist">
         <button
           type="button"
@@ -322,6 +324,13 @@ function requestRecall(name: string) {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.cap-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--c-text-muted);
+  padding: 0 2px;
 }
 
 .roster-tabs {

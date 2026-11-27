@@ -10,6 +10,7 @@ import CompanyMapPanel from '../CompanyMapPanel.vue';
 import RosterPanel from '../RosterPanel.vue';
 import ShapingMeter from './ShapingMeter.vue';
 import type { CompanyLocation, RosterMember } from '../../../../schema';
+import type { RolledHeteromorph } from '../../../../heteromorph-pool';
 import type { MapOccupant } from '../../map-data';
 import type { RosterArchiveMap } from '../../roster-archive';
 
@@ -30,6 +31,7 @@ const props = defineProps<{
 defineEmits<{
   'special-event': [];
   'move-player': [location: CompanyLocation];
+  'start-battle': [payload: { fighterInput: string; opponent: RolledHeteromorph }];
   'archive-member': [name: string];
   'recall-member': [name: string];
 }>();
@@ -88,10 +90,12 @@ const stageLine = computed(() => ({
     <CompanyMapPanel
       :player-location="playerLocation"
       :occupants="occupants"
+      :roster-names="Object.keys(roster)"
       :busy="mapBusy"
       :notice="mapNotice"
       :can-edit="canEditMap"
       @move-player="$emit('move-player', $event)"
+      @start-battle="$emit('start-battle', $event)"
     />
 
     <RosterPanel

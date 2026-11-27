@@ -2,10 +2,13 @@
 import { computed, ref, watch } from 'vue';
 import { DEFAULT_LOCATION, isCompanyLocation, type CompanyLocation } from '../../../schema';
 import { COMPANY_FLOORS, COMPANY_ROOM_MAP, type MapOccupant, type RoomIconKey } from '../map-data';
+import { createOpponentPreview, type ArenaOpponentPreview } from '../arena-battle';
+import type { RolledHeteromorph } from '../../../heteromorph-pool';
 
 const props = defineProps<{
   playerLocation: string;
   occupants: MapOccupant[];
+  rosterNames: string[];
   busy: boolean;
   notice: string;
   canEdit: boolean;
@@ -13,6 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'move-player': [location: CompanyLocation];
+  'start-battle': [payload: { fighterInput: string; opponent: RolledHeteromorph }];
 }>();
 
 function resolveInitialSelected(loc: string): CompanyLocation {
@@ -47,6 +51,44 @@ const outdoorOccupants = computed(() =>
 const selectedRoom = computed(() => COMPANY_ROOM_MAP[selectedId.value]);
 const selectedOccupants = computed(() => occupantsByRoom.value[selectedId.value] ?? []);
 const playerAtSelected = computed(() => props.playerLocation === selectedId.value);
+const isArenaSelected = computed(() => selectedId.value === '训练场/斗兽场');
+
+const battleDialog = ref<HTMLDialogElement>();
+const fighterInput = ref('吕青青');
+const opponentPreview = ref<ArenaOpponentPreview>(createOpponentPreview());
+const fighterCandidates = computed(() => ['吕青青', ...props.rosterNames]);
+
+function openBattleDialog() {
+  if (props.busy || !props.canEdit) return;
+  opponentPreview.value = createOpponentPreview();
+  fighterInput.value = '吕青青';
+  battleDialog.value?.showModal();
+}
+
+function rerollOpponent() {
+  opponentPreview.value = createOpponentPreview();
+}
+
+function appendFighter(name: string) {
+  const current = fighterInput.value.trim();
+  if (!current) {
+    fighterInput.value = name;
+    return;
+  }
+  if (current.includes(name)) return;
+  fighterInput.value = `${current}、${name}`;
+}
+
+function closeBattleDialog() {
+  battleDialog.value?.close();
+}
+
+function submitBattle() {
+  const text = fighterInput.value.trim() || '吕青青';
+  const opponent = opponentPreview.value.spec;
+  closeBattleDialog();
+  emit('start-battle', { fighterInput: text, opponent });
+}
 
 function occupantsIn(roomId: CompanyLocation) {
   return occupantsByRoom.value[roomId] ?? [];
@@ -216,6 +258,16 @@ function iconPaths(icon: RoomIconKey): string[] {
           {{ notice || (!canEdit ? '历史楼层仅供查看' : '') }}
         </span>
         <button
+          v-if="isArenaSelected"
+          type="button"
+          class="move-btn arena-btn"
+          :disabled="busy || !canEdit"
+          @click="openBattleDialog"
+        >
+          {{ busy ? '开启中…' : '安排战斗' }}
+        </button>
+        <button
+          v-else
           type="button"
           class="move-btn"
           :class="{ 'is-here': playerAtSelected }"
@@ -226,6 +278,50 @@ function iconPaths(icon: RoomIconKey): string[] {
         </button>
       </div>
     </div>
+
+    <dialog ref="battleDialog" class="battle-dialog" aria-labelledby="arena-battle-title">
+      <form method="dialog" @submit.prevent="submitBattle">
+        <h3 id="arena-battle-title">地下斗兽场 · 安排战斗</h3>
+
+        <div class="opponent-box">
+          <div class="opponent-head">
+            <span class="opponent-tag">待驯服对手档案</span>
+            <button type="button" class="reroll-btn" @click="rerollOpponent">换一位对手</button>
+          </div>
+          <p class="opponent-line">{{ opponentPreview.summaryLine }}</p>
+          <p class="opponent-sub">
+            {{ opponentPreview.spec.bust }} · 印象色 {{ opponentPreview.spec.impressionColor }} · {{ opponentPreview.spec.clothingStyle }}
+          </p>
+        </div>
+
+        <label class="fighter-label" for="arena-fighter-input">你想让谁上场战斗？</label>
+
+        <div class="quick-fighters">
+          <button
+            v-for="name in fighterCandidates"
+            :key="name"
+            type="button"
+            class="fighter-chip"
+            @click="appendFighter(name)"
+          >
+            + {{ name }}
+          </button>
+        </div>
+
+        <input
+          id="arena-fighter-input"
+          v-model="fighterInput"
+          type="text"
+          class="fighter-input"
+          placeholder="自由输入人选，如：吕青青 / 吕青青和苏柚柚一起上"
+        />
+
+        <div class="dialog-choices">
+          <button type="button" class="dialog-btn dialog-cancel" @click="closeBattleDialog">取消</button>
+          <button type="submit" class="dialog-btn dialog-confirm">确认开战</button>
+        </div>
+      </form>
+    </dialog>
   </section>
 </template>
 
@@ -633,6 +729,161 @@ function iconPaths(icon: RoomIconKey): string[] {
   color: var(--c-text-muted);
   cursor: not-allowed;
   transform: none;
+}
+
+.battle-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid color-mix(in srgb, var(--c-stage) 48%, #7b8fb8);
+  border-radius: 18px;
+  padding: 20px 18px 18px;
+  width: min(372px, calc(100% - 28px));
+  background: linear-gradient(160deg, #161d3f, #101530);
+  color: #eef2ff;
+  box-shadow: 0 20px 50px rgba(5, 10, 28, 0.64);
+  text-align: left;
+}
+
+.battle-dialog::backdrop {
+  background: rgba(6, 10, 24, 0.64);
+  backdrop-filter: blur(3px);
+}
+
+.battle-dialog h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: 0.8px;
+  text-align: center;
+  color: #f4f7ff;
+}
+
+.opponent-box {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(162, 188, 232, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 12px;
+}
+
+.opponent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.opponent-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #93c5fd;
+}
+
+.reroll-btn {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #dbeafe;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.reroll-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.opponent-line {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #f1f5ff;
+}
+
+.opponent-sub {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(219, 231, 255, 0.72);
+}
+
+.fighter-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #eef2ff;
+  margin-bottom: 7px;
+}
+
+.quick-fighters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.fighter-chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(147, 197, 253, 0.42);
+  background: rgba(99, 134, 214, 0.2);
+  color: #e2eeff;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.fighter-chip:hover {
+  background: rgba(99, 134, 214, 0.36);
+}
+
+.fighter-input {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(162, 188, 232, 0.35);
+  background: rgba(9, 13, 30, 0.72);
+  color: #f4f7ff;
+  font: inherit;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.fighter-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--c-stage) 75%, #60a5fa);
+  outline-offset: 1px;
+}
+
+.dialog-choices {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-btn {
+  min-width: 104px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dialog-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #dce4ff;
+}
+
+.dialog-confirm {
+  background: linear-gradient(100deg, var(--c-primary), var(--c-stage));
+  border-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 @media (max-width: 390px) {
