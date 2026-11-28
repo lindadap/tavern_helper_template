@@ -1,6 +1,6 @@
 import type { CompanyLocation } from '../../schema';
 
-export type RoomIconKey = 'office' | 'bedroom' | 'dorm' | 'desk' | 'dining' | 'medical' | 'arena';
+export type RoomIconKey = 'office' | 'bedroom' | 'dorm' | 'desk' | 'dining' | 'medical' | 'arena' | 'training';
 
 export interface CompanyRoomSpec {
   id: CompanyLocation;
@@ -15,7 +15,7 @@ export interface CompanyRoomSpec {
 export interface FloorBandSpec {
   code: '3F' | '2F' | '1F' | 'B1';
   label: string;
-  columns: 1 | 2 | 3;
+  columns: 1 | 2 | 3 | 'b1-split';
   rooms: readonly CompanyRoomSpec[];
 }
 
@@ -23,7 +23,7 @@ export interface MapOccupant {
   id: string;
   name: string;
   kind: 'player' | 'heroine' | 'npc';
-  location: string;
+  location: CompanyLocation;
   color?: string;
 }
 
@@ -58,7 +58,7 @@ export const COMPANY_FLOORS: readonly FloorBandSpec[] = [
         id: '异种娘宿舍',
         floor: '2F',
         shortTitle: '异种娘宿舍',
-        description: '每人独立的温馨小房间，远胜异种星球百倍。',
+        description: '为已收服的异种娘准备的温馨独立小房间。',
         icon: 'dorm',
       },
     ],
@@ -72,14 +72,14 @@ export const COMPANY_FLOORS: readonly FloorBandSpec[] = [
         id: '办公区',
         floor: '1F',
         shortTitle: '办公区',
-        description: '日常档案翻阅与公司事务处理区域。',
+        description: '日常档案翻阅与公共接待区，常有异种娘晒太阳凑热闹。',
         icon: 'desk',
       },
       {
         id: '餐厅',
         floor: '1F',
         shortTitle: '餐厅',
-        description: '明亮用餐区，常飘着现代美食的香气。',
+        description: '明亮用餐区，饭点时常飘着现代美食的香气。',
         icon: 'dining',
       },
       {
@@ -94,7 +94,7 @@ export const COMPANY_FLOORS: readonly FloorBandSpec[] = [
   {
     code: 'B1',
     label: '地下防爆',
-    columns: 1,
+    columns: 'b1-split',
     rooms: [
       {
         id: '训练场/斗兽场',
@@ -102,6 +102,13 @@ export const COMPANY_FLOORS: readonly FloorBandSpec[] = [
         shortTitle: '训练场 / 斗兽场',
         description: '地下防爆对练场与专属观战台，用于新人训诫与切磋。',
         icon: 'arena',
+      },
+      {
+        id: '调教室',
+        floor: 'B1',
+        shortTitle: '调教室',
+        description: '地下隔音私密房间，备有各类情色调教与束缚道具，战后新异种娘先送入此处调教。',
+        icon: 'training',
       },
     ],
   },

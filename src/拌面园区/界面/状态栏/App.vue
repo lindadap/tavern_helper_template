@@ -264,6 +264,7 @@ async function advance() {
   <LvqingqingPanel
     player-name="你"
     :day="data.系统.天数"
+    :time-slot="data.系统.时段"
     :heroine="data.吕青青"
     :player-location="data.系统.玩家位置"
     :occupants="occupants"

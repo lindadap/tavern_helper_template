@@ -6,7 +6,7 @@ import { createOpponentPreview, type ArenaOpponentPreview } from '../arena-battl
 import type { RolledHeteromorph } from '../../../heteromorph-pool';
 
 const props = defineProps<{
-  playerLocation: string;
+  playerLocation: CompanyLocation;
   occupants: MapOccupant[];
   rosterNames: string[];
   busy: boolean;
@@ -44,24 +44,20 @@ const occupantsByRoom = computed(() => {
   return map;
 });
 
-const outdoorOccupants = computed(() =>
-  props.occupants.filter(occ => !isCompanyLocation(occ.location)),
-);
-
 const selectedRoom = computed(() => COMPANY_ROOM_MAP[selectedId.value]);
 const selectedOccupants = computed(() => occupantsByRoom.value[selectedId.value] ?? []);
 const playerAtSelected = computed(() => props.playerLocation === selectedId.value);
 const isArenaSelected = computed(() => selectedId.value === '训练场/斗兽场');
 
 const battleDialog = ref<HTMLDialogElement>();
-const fighterInput = ref('吕青青');
+const fighterInput = ref('');
 const opponentPreview = ref<ArenaOpponentPreview>(createOpponentPreview());
 const fighterCandidates = computed(() => ['吕青青', ...props.rosterNames]);
 
 function openBattleDialog() {
   if (props.busy || !props.canEdit) return;
   opponentPreview.value = createOpponentPreview();
-  fighterInput.value = '吕青青';
+  fighterInput.value = '';
   battleDialog.value?.showModal();
 }
 
@@ -70,13 +66,13 @@ function rerollOpponent() {
 }
 
 function appendFighter(name: string) {
-  const current = fighterInput.value.trim();
-  if (!current) {
+  const current = fighterInput.value;
+  if (!current.trim()) {
     fighterInput.value = name;
     return;
   }
   if (current.includes(name)) return;
-  fighterInput.value = `${current}、${name}`;
+  fighterInput.value = `${current}${/[，。！？、\s]$/.test(current) ? '' : ' '}${name}`;
 }
 
 function closeBattleDialog() {
@@ -84,7 +80,7 @@ function closeBattleDialog() {
 }
 
 function submitBattle() {
-  const text = fighterInput.value.trim() || '吕青青';
+  const text = fighterInput.value.trim();
   const opponent = opponentPreview.value.spec;
   closeBattleDialog();
   emit('start-battle', { fighterInput: text, opponent });
@@ -140,6 +136,8 @@ function iconPaths(icon: RoomIconKey): string[] {
       return ['M12 6v12', 'M6 12h12', 'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z'];
     case 'arena':
       return ['M12 3l8 4v6c0 4.5-3.2 7.2-8 8-4.8-.8-8-3.5-8-8V7l8-4z', 'M9 12l2 2 4-4'];
+    case 'training':
+      return ['M12 4a4 4 0 0 1 4 4v2H8V8a4 4 0 0 1 4-4z', 'M6 10h12v9a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-9z', 'M12 14v2'];
   }
 }
 </script>
@@ -210,15 +208,6 @@ function iconPaths(icon: RoomIconKey): string[] {
             </div>
           </button>
         </div>
-      </div>
-    </div>
-
-    <div v-if="outdoorOccupants.length > 0" class="outdoor-bar">
-      <span class="outdoor-label">外出中</span>
-      <div class="outdoor-list">
-        <span v-for="occ in outdoorOccupants" :key="occ.id" class="outdoor-chip">
-          {{ occ.name }} · {{ occ.location }}
-        </span>
       </div>
     </div>
 
@@ -294,7 +283,7 @@ function iconPaths(icon: RoomIconKey): string[] {
           </p>
         </div>
 
-        <label class="fighter-label" for="arena-fighter-input">你想让谁上场战斗？</label>
+        <label class="fighter-label" for="arena-fighter-input">赛前行动与出战安排</label>
 
         <div class="quick-fighters">
           <button
@@ -308,13 +297,13 @@ function iconPaths(icon: RoomIconKey): string[] {
           </button>
         </div>
 
-        <input
+        <textarea
           id="arena-fighter-input"
           v-model="fighterInput"
-          type="text"
+          rows="4"
           class="fighter-input"
-          placeholder="自由输入人选，如：吕青青 / 吕青青和苏柚柚一起上"
-        />
+          placeholder="在这里写下你的行动以及安排谁去战斗，比如哄猫娘说“打完有奖励”或赛前小动作。"
+        ></textarea>
 
         <div class="dialog-choices">
           <button type="button" class="dialog-btn dialog-cancel" @click="closeBattleDialog">取消</button>
@@ -460,6 +449,10 @@ function iconPaths(icon: RoomIconKey): string[] {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.room-grid.cols-b1-split {
+  grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+}
+
 .room-tile {
   position: relative;
   overflow: hidden;
@@ -593,38 +586,6 @@ function iconPaths(icon: RoomIconKey): string[] {
 
 .occ-roster .pill-dot {
   background: var(--occ-color, #6d94c5);
-}
-
-.outdoor-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 7px 10px;
-  border-radius: 10px;
-  border: 1px dashed var(--c-border-glass);
-  background: color-mix(in srgb, var(--c-surface) 80%, transparent);
-  font-size: 11.5px;
-}
-
-.outdoor-label {
-  color: var(--c-text-muted);
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.outdoor-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.outdoor-chip {
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--c-border-glass);
-  background: var(--c-surface-strong);
-  color: var(--c-text-primary);
 }
 
 .room-detail {
@@ -842,6 +803,7 @@ function iconPaths(icon: RoomIconKey): string[] {
 
 .fighter-input {
   width: 100%;
+  box-sizing: border-box;
   padding: 9px 11px;
   border-radius: 10px;
   border: 1px solid rgba(162, 188, 232, 0.35);
@@ -849,6 +811,8 @@ function iconPaths(icon: RoomIconKey): string[] {
   color: #f4f7ff;
   font: inherit;
   font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
   margin-bottom: 14px;
 }
 

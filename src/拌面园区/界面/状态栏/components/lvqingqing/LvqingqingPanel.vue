@@ -9,7 +9,7 @@ import SpecialButton from '../SpecialButton.vue';
 import CompanyMapPanel from '../CompanyMapPanel.vue';
 import RosterPanel from '../RosterPanel.vue';
 import ShapingMeter from './ShapingMeter.vue';
-import type { CompanyLocation, RosterMember } from '../../../../schema';
+import type { CompanyLocation, RosterMember, TimeSlot } from '../../../../schema';
 import type { RolledHeteromorph } from '../../../../heteromorph-pool';
 import type { MapOccupant } from '../../map-data';
 import type { RosterArchiveMap } from '../../roster-archive';
@@ -17,8 +17,9 @@ import type { RosterArchiveMap } from '../../roster-archive';
 const props = defineProps<{
   playerName: string;
   day: number;
+  timeSlot: TimeSlot;
   heroine: Schema['吕青青'];
-  playerLocation: string;
+  playerLocation: CompanyLocation;
   occupants: MapOccupant[];
   roster: Record<string, RosterMember>;
   archive: RosterArchiveMap;
@@ -61,7 +62,13 @@ const stageLine = computed(() => ({
     <div class="glaze" aria-hidden="true"></div>
     <div class="particles" aria-hidden="true"><i v-for="n in 8" :key="n"></i></div>
 
-    <HeaderBar :player-name="playerName" :day="day" :stage="heroine.$阶段" :present="heroine.在场" />
+    <HeaderBar
+      :player-name="playerName"
+      :day="day"
+      :time-slot="timeSlot"
+      :stage="heroine.$阶段"
+      :present="heroine.在场"
+    />
 
     <main class="stack">
       <div class="portrait-zone">

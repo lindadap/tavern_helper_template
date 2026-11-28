@@ -219,7 +219,7 @@ export function formatHeteromorphPromptBrief(spec: RolledHeteromorph): string {
     `- 性格组合：${spec.personalities.join(' / ')}`,
     `- 体型与长相：${spec.height} · ${spec.build} · ${spec.bust} · ${spec.looks}`,
     `- 印象颜色：${spec.impressionColor}；常穿服装风格：${spec.clothingStyle}`,
-    `- 命名硬规则：请为她取一个有记忆点的可爱名字——若为三字名，后两字必须叠字（如苏柚柚、白糯糯、林团团）；若为两字名，必须软糯可爱带宠物感（如奶糖、团子、布丁、豆包）。不得与已有角色重名。`,
-    `- 入册变量指引：若本回合结束时她留在了园区，请通过 JSONPatch 在 /名册/<新名字> 插入条目，字段包含：种族("${spec.species}")、性格("${spec.personalities.join('、')}")、外貌("${appearanceSummary}")、印象颜色("${spec.impressionColor}")、服装风格("${spec.clothingStyle}")、简介(15~40字鲜活初印象)、位置(实际所在房间)、好感度(初见10~20)、服从度(初见10~25)、_战力(${spec.combatPower}，隐藏战力严禁在正文中直接念出具体数字)。`,
+    `- 命名硬规则：请为她取一个有记忆点的可爱名字——若为三字名，后两字必须叠字（如白糯糯、林团团、姜糖糖）；若为两字名，必须软糯可爱带宠物感（如奶糖、团子、布丁、豆包）。不得与已有角色重名。`,
+    `- 入册变量指引：若本回合结束时她留在了园区，请通过 JSONPatch 在 /名册/<新名字> 插入条目，字段包含：种族("${spec.species}")、性格("${spec.personalities.join('、')}")、外貌("${appearanceSummary}")、印象颜色("${spec.impressionColor}")、服装风格("${spec.clothingStyle}")、简介(15~40字鲜活初印象)、位置(刚经过斗兽场战斗的无论输赢均先填"调教室"，真正收服后才转入"异种娘宿舍")、好感度(初见10~20)、服从度(初见10~25)、_战力(${spec.combatPower}，隐藏战力严禁在正文中直接念出具体数字)。`,
   ].join('\n');
 }

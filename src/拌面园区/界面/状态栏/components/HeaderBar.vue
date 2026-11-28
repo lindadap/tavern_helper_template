@@ -1,5 +1,7 @@
 <script setup lang="ts">
-defineProps<{ playerName: string; day: number; stage: string; present?: boolean }>();
+import type { TimeSlot } from '../../../schema';
+
+defineProps<{ playerName: string; day: number; timeSlot: TimeSlot; stage: string; present?: boolean }>();
 </script>
 
 <template>
@@ -9,7 +11,7 @@ defineProps<{ playerName: string; day: number; stage: string; present?: boolean 
       <span class="stage-badge">{{ stage }}</span>
       <span v-if="present === false" class="absent-chip">不在场</span>
     </div>
-    <span class="day-chip">第 {{ day }} 天</span>
+    <span class="day-chip">第 {{ day }} 天 · {{ timeSlot }}</span>
   </header>
 </template>
 

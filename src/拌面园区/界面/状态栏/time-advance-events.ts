@@ -1,4 +1,11 @@
-import { pickLvqingqingLocation, ROSTER_SOFT_CAP, type CompanyLocation } from '../../schema';
+import {
+  pickLvqingqingLocation,
+  pickNpcLocation,
+  ROSTER_SOFT_CAP,
+  type CompanyLocation,
+  type RosterMember,
+  type TimeSlot,
+} from '../../schema';
 import { formatHeteromorphPromptBrief, rollHeteromorphSpec, type RolledHeteromorph } from '../../heteromorph-pool';
 
 export type HeroineStage = '宠物期' | '暧昧期' | '恋爱期' | '妻子期';
@@ -8,6 +15,7 @@ export interface AdvanceContext {
   shaping: number;
   stage: HeroineStage;
   rosterCount?: number;
+  roster?: Record<string, RosterMember>;
 }
 
 export interface AdvanceHistory {
@@ -26,7 +34,7 @@ export interface CommonEvent {
 export const EXCLUSIVE_WEIGHT = 0.5;
 const RECENT_COMMON_WINDOW = 6;
 
-// Common event pool shared across advances.
+// Common event pool shared across advances (all grounded inside the park).
 export const COMMON_EVENT_POOL: CommonEvent[] = [
   // --- 1. 异种娘之间关系变好（主角不参与过程，末尾登场看结果） ---
   {
@@ -34,8 +42,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '关系变好',
     title: '猫娘叠在一起晒太阳',
     outline:
-      '【视角要求】先聚焦园区客厅里的猫娘们，{{user}}暂不介入，直到故事末尾推门回来才撞见结果。' +
-      '午后阳光斜斜铺在客厅地毯上，暖洋洋得让人犯困。原本各占山头、平时还有点互相戒备的猫娘们不知不觉往最暖和的那块阳光里挪，' +
+      '【视角要求】先聚焦园区1F办公区阳光落地窗前的猫娘们，{{user}}暂不介入，直到故事末尾推门回来才撞见结果。' +
+      '午后阳光斜斜铺在地毯上，暖洋洋得让人犯困。原本各占山头、平时还有点互相戒备的猫娘们不知不觉往最暖和的那块阳光里挪，' +
       '先是一只小猫娘迷迷糊糊靠过来，连平日里冷着脸的吕青青也没把人推开，最后几只猫娘竟毛茸茸地叠成一团晒太阳，耳朵贴着耳朵、尾巴松松搭在一起发出轻轻呼噜声。' +
       '{{user}}办完事推门回来时正好撞见这副超可爱的“猫猫叠叠乐”，吕青青惊醒后还嘴硬不承认刚才靠得很舒服。',
   },
@@ -44,17 +52,17 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '关系变好',
     title: '半包小鱼干的休战协议',
     outline:
-      '【视角要求】先写园区里吕青青与另一只平时有点怕她的猫娘（或园区其他异种娘）之间的互动，{{user}}暂不介入。' +
+      '【视角要求】先写园区餐厅里吕青青与另一只平时有点怕她的猫娘（或园区其他异种娘）之间的互动，{{user}}暂不介入。' +
       '起因是那只猫娘在厨房够不到高处的零食罐，吕青青路过时冷着脸顺手替她拿下来，对方受宠若惊分了她半包鱼干。' +
       '两只猫居然靠在窗台边安静地一块儿啃完了，气氛莫名融洽起来。{{user}}在故事末尾路过时，正好看见平日里一见面就炸毛的两只猫难得挨着晒太阳的结果。',
   },
   {
     id: 'bond_grooming_nap',
     category: '关系变好',
-    title: '午后客厅的意外合群',
+    title: '午后大厅的意外合群',
     outline:
-      '【视角要求】全程先聚焦园区里的异种娘们，{{user}}在末尾才推门回来看到结果。' +
-      '午后停电空调停了一会儿，几只异种娘热得无精打采，吕青青嘴上嫌吵却默默把最凉快的瓷砖地和风扇位让出一半，还顺手帮旁边打瞌睡的小猫娘挡住刺眼阳光。' +
+      '【视角要求】全程先聚焦园区1F办公区休息处的异种娘们，{{user}}在末尾才推门回来看到结果。' +
+      '午后空调检修短暂停了一会儿，几只异种娘热得无精打采，吕青青嘴上嫌吵却默默把最凉快的瓷砖地和风扇位让出一半，还顺手帮旁边打瞌睡的小猫娘挡住刺眼阳光。' +
       '等{{user}}办完事回来时，看见原本各占山头的几只猫娘竟凑成一团打盹，关系明显热络了许多。',
   },
 
@@ -64,8 +72,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '关系变差',
     title: '沙发黄金位的领地风波',
     outline:
-      '园区里一只新来的/好胜的猫娘趁吕青青不在，霸占了客厅离{{user}}常坐位置最近的抱枕并留了气味。' +
-      '吕青青回来后当场压平耳朵、尾巴炸开，双方互相哈气对峙、火药味十足，眼看就要动手把客厅掀翻。' +
+      '园区里一只新来的/好胜的猫娘趁吕青青不在，霸占了1F办公区离{{user}}常坐位置最近的抱枕并留了气味。' +
+      '吕青青回来后当场压平耳朵、尾巴炸开，双方互相哈气对峙、火药味十足，眼看就要动手把休息区掀翻。' +
       '其余猫娘不敢劝架，局面僵持不下，结尾留出明确口子等待{{user}}出面协调偏心或定规矩。',
   },
   {
@@ -93,8 +101,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '现代物品惊奇',
     title: '自动售货机的奇迹',
     outline:
-      '{{user}}带吕青青外出路过街角的自动售货机。她对这台“吞下硬币就会咚一声吐出饮料的铁箱子”充满惊奇——' +
-      '投币的仪式感、按键亮灯、罐子滚落出来的声响每一步都让她冰蓝的眼睛微微发亮，甚至一本正经怀疑里面是不是蹲着只负责递东西的小精怪，还差点对机器点点头道谢。' +
+      '园区1F休息走廊新装了一台冷饮自动售货机。{{user}}带着吕青青试用这台“拍下卡就会咚一声吐出冰饮料的铁箱子”——' +
+      '按键亮灯、机械臂挪动、罐子滚落出来的声响每一步都让她冰蓝的眼睛微微发亮，甚至一本正经怀疑铁箱里面是不是蹲着只负责递东西的小精怪，还差点对机器点点头道谢。' +
       '轻松温馨的小品，写出她面对现代造物时的反差萌与{{user}}的自然互动。',
   },
   {
@@ -106,20 +114,20 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
       '终于鼓起勇气给{{user}}发出了人生第一条消息。写出消息原文、{{user}}看到手机震动后的反应，以及她躲在门后竖着猫耳偷听动静的可爱模样。',
   },
   {
-    id: 'modern_supermarket',
+    id: 'modern_supply_unboxing',
     category: '现代物品惊奇',
-    title: '第一次逛大超市',
+    title: '补给车的大采购开箱',
     outline:
-      '{{user}}带吕青青去大型超市采购。琳琅满目的货架、生鲜区的鱼和零食区对她来说全是新大陆——' +
-      '在生鲜区挪不动步、尾巴不受控地轻轻甩动、被头顶突然响起的超市广播吓得耳朵一抖，还偷偷往购物车里塞了两包小零食。' +
-      '写出{{user}}的纵容互动，以及结账后她把长长的小票当宝物收进口袋的小细节。',
+      '园区每周一次的无人补给车送来几大箱生活与生鲜采购物资，摆满了1F餐厅长桌。琳琅满目的冷冻鲜鱼、果冻甜品和零食罐对吕青青来说全是新大陆——' +
+      '她盯着生鲜箱挪不动步、尾巴不受控地轻轻甩动，还偷偷往自己怀里多塞了两包小鱼干。' +
+      '写出{{user}}的纵容互动，以及她把长长的物资清单当成战利品收进口袋的小细节。',
   },
   {
     id: 'modern_phone_video',
     category: '现代物品惊奇',
     title: '方块里传来的猫叫声',
     outline:
-      '客厅平板或手机不小心外放了一段猫咪叫声的短视频。几只猫娘围着发光的薄玻璃板团团转，甚至绕到屏幕背面找“藏在里面的猫”，' +
+      '办公区平板或手机不小心外放了一段猫咪叫声的短视频。几只猫娘围着发光的薄玻璃板团团转，甚至绕到屏幕背面找“藏在里面的猫”，' +
       '吕青青冷着脸戳了戳屏幕，发现摸不到毛又气又困惑，怀疑人类发明了什么装魂法器。' +
       '自然写出猫娘们被现代科技唬住的反差萌，留给{{user}}结尾互动。',
   },
@@ -128,8 +136,8 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '现代物品惊奇',
     title: '叮一声变热的魔法铁箱',
     outline:
-      '一只猫娘看着冷饭放进微波炉转几圈、“叮”一声就冒出热气，惊奇得眼睛发亮，拉着吕青青凑在玻璃门前研究里面的盘子为什么自己转。' +
-      '她们正嘀咕能不能把冻硬的小鱼干或者湿毛巾也塞进去“施法”，差点把带锡纸的包装一起放进去，正好被刚进厨房的{{user}}撞见。',
+      '一只猫娘在餐厅看着冷饭放进微波炉转几圈、“叮”一声就冒出热气，惊奇得眼睛发亮，拉着吕青青凑在玻璃门前研究里面的盘子为什么自己转。' +
+      '她们正嘀咕能不能把冻硬的小鱼干或者湿毛巾也塞进去“施法”，差点把带锡纸的包装一起放进去，正好被刚进餐厅的{{user}}撞见。',
   },
 
   // --- 4. 猫娘闯祸（打碎东西/手忙脚乱善后） ---
@@ -147,7 +155,7 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '猫娘闯祸',
     title: '失手打翻的拌面酱罐',
     outline:
-      '猫娘们嘴馋提前溜进厨房偷看晚饭准备的拌面酱，结果爪子一滑把酱料罐碰翻，浓郁的酱汁泼了一桌还沾到了猫爪和裙角上。' +
+      '猫娘们嘴馋提前溜进餐厅偷看晚饭准备的拌面酱，结果爪子一滑把酱料罐碰翻，浓郁的酱汁泼了一桌还沾到了猫爪和裙角上。' +
       '为了销毁证据，闯祸的猫娘一边偷舔爪子上的酱一边拿抹布越擦越花，彻底暴露了作案现场。{{user}}推门而入时正撞上这副惨状。',
   },
 
@@ -157,16 +165,16 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     category: '温馨日常',
     title: '深夜门口的守望',
     outline:
-      '凌晨{{user}}起夜推开门，发现吕青青正抱膝靠在房门口的地板上打盹，猫耳却还警觉地立着——不知道守了多久。' +
+      '凌晨{{user}}在2F老板卧室起夜推开门，发现吕青青正抱膝靠在房门口的地板上打盹，猫耳却还警觉地立着——不知道守了多久。' +
       '被发现后她嘴硬找借口（“顺手路过”“门口地板凉快”），死活不承认是放心不下主人，等着{{user}}戳破她的小心思并把她拎回屋里。',
   },
   {
     id: 'daily_rain_umbrella',
     category: '温馨日常',
-    title: '雨天共伞',
+    title: '园区雨廊共伞',
     outline:
-      '外出时突降大雨，{{user}}和吕青青只有一把伞，两个人挤在伞下往园区走。' +
-      '写出猫娘讨厌淋雨的细节（耳朵沾到水珠抖一抖、轻轻甩水、怕淋湿悄悄往{{user}}身边挤、手指攥住衣角），结尾回到暖和的屋里擦头发喝热饮。',
+      '园区突降暴雨，{{user}}和吕青青穿过露天中庭往主楼走，手里只有一把伞，两个人挤在伞下并肩前行。' +
+      '写出猫娘讨厌淋雨的细节（耳朵沾到水珠抖一抖、轻轻甩水、怕淋湿悄悄往{{user}}身边挤、手指攥住衣角），结尾回到暖和的室内擦头发喝热饮。',
   },
 
   // --- 6. 新异种娘押送入园（调用通用哺乳动物抽卡池） ---
@@ -176,12 +184,11 @@ export const COMMON_EVENT_POOL: CommonEvent[] = [
     title: '政府押送新异种娘入园',
     outline:
       '政府武装押送队突然送来一名新移交的危险/难驯异种娘，五花大绑带进了园区大厅或地下训练场交接。' +
-      '请先写出交接时的紧张与反差气氛，让这位新异种娘鲜活亮相，并在结尾留出空间让{{user}}决定是立刻派人上斗兽场按服还是先观察收容。',
+      '请先写出交接时的紧张与反差气氛，让这位新异种娘鲜活亮相，并在结尾留出空间让{{user}}决定是立刻派人上斗兽场按服还是直接送进B1调教室观察。',
   },
 ];
 
 // Exclusive event for Lvqingqing: reporter interview ear-petting contrast.
-// Triggers at most once in early stages (shaping < 180) and once in late stages (shaping >= 180).
 function buildLvqingqingReporterOutline(stage: HeroineStage): string {
   const commonLead =
     '【角色专属事件：记者回访采访】一位年轻随和的地方/融媒体记者慕名来园区采访，' +
@@ -230,6 +237,9 @@ export function pickAdvanceEvent(
   rng: () => number = Math.random,
 ) {
   const nextDay = ctx.day + 5;
+  const nextSlot: TimeSlot = rng() < 0.5 ? '中午' : '黄昏';
+  const rosterObj = ctx.roster ?? {};
+  const rosterCount = ctx.rosterCount ?? Object.keys(rosterObj).length;
   const isEarly = ctx.shaping < 180;
   const slotKey = isEarly ? 'lqq_reporter_early' : 'lqq_reporter_late';
   const canTriggerExclusive = !history.exclusiveTriggered[slotKey];
@@ -254,7 +264,7 @@ export function pickAdvanceEvent(
     eventType = '吕青青专属事件';
     eventOutline = buildLvqingqingReporterOutline(ctx.stage);
   } else {
-    const canIntake = (ctx.rosterCount ?? 0) < ROSTER_SOFT_CAP;
+    const canIntake = rosterCount < ROSTER_SOFT_CAP;
     const eligible = canIntake
       ? COMMON_EVENT_POOL
       : COMMON_EVENT_POOL.filter(e => e.id !== 'intake_new_heteromorph');
@@ -274,20 +284,43 @@ export function pickAdvanceEvent(
     }
   }
 
-  const rolledLocation: CompanyLocation = pickLvqingqingLocation(ctx.stage, rng);
+  const rolledLocation: CompanyLocation = pickLvqingqingLocation(ctx.stage, nextSlot, rng);
+  const rolledNpcLocations: Record<string, CompanyLocation> = {};
+  const npcMoveNotes: string[] = [];
+  for (const [name, member] of Object.entries(rosterObj)) {
+    if (member.位置 === '调教室') {
+      rolledNpcLocations[name] = '调教室';
+      npcMoveNotes.push(`${name}仍在「调教室」（待调教）`);
+    } else {
+      const nextNpcLoc = pickNpcLocation(nextSlot, rng);
+      rolledNpcLocations[name] = nextNpcLoc;
+      npcMoveNotes.push(`${name}→「${nextNpcLoc}」`);
+    }
+  }
+  const npcScheduleSummary =
+    npcMoveNotes.length > 0 ? `；园区其他名册异种娘动向参考：${npcMoveNotes.join('、')}` : '';
 
-  // Wrapped in <TimeAdvanceEvent> so ST display regex masks the prompt as "事件触发中" for users
-  // while keeping the full directive visible to the LLM.
   const prompt = [
     '<TimeAdvanceEvent>',
-    `[时间推进] 距上次互动已过去5天，当前时间来到第${nextDay}天（请务必将变量「系统.天数」更新为${nextDay}）。`,
+    `[时间推进] 距上次互动已过去5天，当前时间来到第${nextDay}天·${nextSlot}（请务必将变量「系统.天数」更新为${nextDay}、「系统.时段」更新为「${nextSlot}」）。`,
     `请先用2-3句话自然过渡这5天的园区日常，再严格围绕以下随机事件大纲展开剧情：`,
     `【${eventType}｜${eventTitle}】`,
     eventOutline,
-    `【园区动向刷新】经过这5天，吕青青本轮按阶段日常倾向自然活动于「${rolledLocation}」（若上方事件本身明确发生在其他具体地点，以事件实际落点为准）；请务必在本回合变量更新中，按正文结束时的实际场景同步更新「吕青青.位置」、「吕青青.在场」与「系统.玩家位置」。`,
+    `【园区动向刷新】经过这5天，吕青青本轮按阶段日常倾向自然活动于「${rolledLocation}」${npcScheduleSummary}（若上方事件本身明确发生在其他具体地点，以事件实际落点为准）；请务必在本回合变量更新中，按正文结束时的实际场景同步更新「吕青青.位置」、「吕青青.在场」、「系统.玩家位置」及对应名册成员位置。`,
     `要求：紧扣人物当前阶段人设（吕青青当前为${ctx.stage}，塑形度${ctx.shaping}），结尾自然留出给{{user}}介入或回应的空间。`,
     '</TimeAdvanceEvent>',
   ].join('\n');
 
-  return { prompt, nextHistory, eventId, eventTitle, isExclusive, nextDay, rolledLocation, rolledNewcomer };
+  return {
+    prompt,
+    nextHistory,
+    eventId,
+    eventTitle,
+    isExclusive,
+    nextDay,
+    nextSlot,
+    rolledLocation,
+    rolledNpcLocations,
+    rolledNewcomer,
+  };
 }
